@@ -571,6 +571,11 @@ CREATE OR REPLACE FUNCTION ginanyarray_consistent(internal, internal, anyarray)
 	AS 'MODULE_PATHNAME'
 	LANGUAGE C IMMUTABLE;
 
+CREATE OR REPLACE FUNCTION ginanyarray_triconsistent(internal, internal, anyarray,internal,internal,internal,internal,internal)
+	RETURNS internal
+	AS 'MODULE_PATHNAME'
+	LANGUAGE C IMMUTABLE;
+
 --gin opclasses
 
 CREATE OPERATOR CLASS _int2_aa_ops
@@ -612,6 +617,37 @@ AS
 	FUNCTION    2   ginanyarray_extract(anyarray, internal),
 	FUNCTION    3   ginanyarray_queryextract(anyarray, internal, internal),
 	FUNCTION    4   ginanyarray_consistent(internal, internal, anyarray),
+	--FUNCTION    6   ginanyarray_triconsistent(internal, internal, anyarray,internal,internal,internal,internal,internal),
+	STORAGE     int8;
+
+CREATE OPERATOR CLASS _int8_aa_ops_beta
+FOR TYPE _int8  USING gin
+AS
+    OPERATOR	3	&&	(anyarray, anyarray),
+	OPERATOR	6	=	(anyarray, anyarray),
+	OPERATOR	7	@>	(anyarray, anyarray),
+	OPERATOR	8	<@	(anyarray, anyarray),
+	OPERATOR	16	%	(anyarray, anyarray),
+	FUNCTION    1   btint8cmp(int8,int8),
+	FUNCTION    2   ginanyarray_extract(anyarray, internal),
+	FUNCTION    3   ginanyarray_queryextract(anyarray, internal, internal),
+	-- FUNCTION    4   ginanyarray_consistent(internal, internal, anyarray),
+	FUNCTION    6   ginanyarray_triconsistent(internal, internal, anyarray,internal,internal,internal,internal,internal),
+	STORAGE     int8;
+
+CREATE OPERATOR CLASS _int8_aa_ops_beta2
+FOR TYPE _int8  USING gin
+AS
+    OPERATOR	3	&&	(anyarray, anyarray),
+	OPERATOR	6	=	(anyarray, anyarray),
+	OPERATOR	7	@>	(anyarray, anyarray),
+	OPERATOR	8	<@	(anyarray, anyarray),
+	OPERATOR	16	%	(anyarray, anyarray),
+	FUNCTION    1   btint8cmp(int8,int8),
+	FUNCTION    2   ginanyarray_extract(anyarray, internal),
+	FUNCTION    3   ginanyarray_queryextract(anyarray, internal, internal),
+	FUNCTION    4   ginanyarray_consistent(internal, internal, anyarray),
+	FUNCTION    6   ginanyarray_triconsistent(internal, internal, anyarray,internal,internal,internal,internal,internal),
 	STORAGE     int8;
 
 CREATE OPERATOR CLASS _float4_aa_ops
