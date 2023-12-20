@@ -299,14 +299,20 @@ ginanyarray_triconsistent(PG_FUNCTION_ARGS)
 						}
 						break;
 					case AA_Overlap:
-						/* if nIntersection >= SmlLimit, so result = GIN_TRUE
+						/*  nIntersectionMin - quantity of GIN_TRUE in check array
+						*   nIntersectionMax - quantity of GIN_TRUE and GIN_MAYBE in check array
+						*  if nIntersectionMin >= SmlLimit, so result = GIN_TRUE
+						*  if nIntersectionMax < SmlLimit, so result = GIN_FALSE
 						*  otherwise if at least one element in check[] is GIN_MAYBE, so result = GIN_MAYBE
 						*  otherwise result = GIN_FALSE
 						*/
 						if(((double)nIntersectionMin) >= SmlLimit)
 						{
 							res = GIN_TRUE;
-						}
+						} else if(((double)nIntersectionMax) < SmlLimit)
+						{
+							res = GIN_FALSE;
+						} 
 						break;
 					default:
 						elog(ERROR, "unknown similarity type");
@@ -314,7 +320,7 @@ ginanyarray_triconsistent(PG_FUNCTION_ARGS)
 			}
 			break;
 		default:
-			elog(ERROR, "ginanyarray_consistent: unknown strategy number: %d",
+			elog(ERROR, "ginanyarray_triconsistent: unknown strategy number: %d",
 				 strategy);
 	}
 	PG_RETURN_GIN_TERNARY_VALUE(res);

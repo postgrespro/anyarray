@@ -590,6 +590,7 @@ AS
 	FUNCTION	2	ginanyarray_extract(anyarray, internal),
 	FUNCTION	3	ginanyarray_queryextract(anyarray, internal, internal),
 	FUNCTION	4	ginanyarray_consistent(internal, internal, anyarray),
+	FUNCTION    6   ginanyarray_triconsistent(internal, internal, anyarray,internal,internal,internal,internal,internal),
 	STORAGE		int2;
 CREATE OPERATOR CLASS _int4_aa_ops
 FOR TYPE _int4  USING gin
@@ -603,39 +604,10 @@ AS
 	FUNCTION    2   ginanyarray_extract(anyarray, internal),
 	FUNCTION    3   ginanyarray_queryextract(anyarray, internal, internal),
 	FUNCTION    4   ginanyarray_consistent(internal, internal, anyarray),
+	FUNCTION    6   ginanyarray_triconsistent(internal, internal, anyarray,internal,internal,internal,internal,internal),
 	STORAGE     int4;
 
 CREATE OPERATOR CLASS _int8_aa_ops
-FOR TYPE _int8  USING gin
-AS
-    OPERATOR	3	&&	(anyarray, anyarray),
-	OPERATOR	6	=	(anyarray, anyarray),
-	OPERATOR	7	@>	(anyarray, anyarray),
-	OPERATOR	8	<@	(anyarray, anyarray),
-	OPERATOR	16	%	(anyarray, anyarray),
-	FUNCTION    1   btint8cmp(int8,int8),
-	FUNCTION    2   ginanyarray_extract(anyarray, internal),
-	FUNCTION    3   ginanyarray_queryextract(anyarray, internal, internal),
-	FUNCTION    4   ginanyarray_consistent(internal, internal, anyarray),
-	--FUNCTION    6   ginanyarray_triconsistent(internal, internal, anyarray,internal,internal,internal,internal,internal),
-	STORAGE     int8;
-
-CREATE OPERATOR CLASS _int8_aa_ops_beta
-FOR TYPE _int8  USING gin
-AS
-    OPERATOR	3	&&	(anyarray, anyarray),
-	OPERATOR	6	=	(anyarray, anyarray),
-	OPERATOR	7	@>	(anyarray, anyarray),
-	OPERATOR	8	<@	(anyarray, anyarray),
-	OPERATOR	16	%	(anyarray, anyarray),
-	FUNCTION    1   btint8cmp(int8,int8),
-	FUNCTION    2   ginanyarray_extract(anyarray, internal),
-	FUNCTION    3   ginanyarray_queryextract(anyarray, internal, internal),
-	-- FUNCTION    4   ginanyarray_consistent(internal, internal, anyarray),
-	FUNCTION    6   ginanyarray_triconsistent(internal, internal, anyarray,internal,internal,internal,internal,internal),
-	STORAGE     int8;
-
-CREATE OPERATOR CLASS _int8_aa_ops_beta2
 FOR TYPE _int8  USING gin
 AS
     OPERATOR	3	&&	(anyarray, anyarray),
@@ -662,6 +634,7 @@ AS
 	FUNCTION    2   ginanyarray_extract(anyarray, internal),
 	FUNCTION    3   ginanyarray_queryextract(anyarray, internal, internal),
 	FUNCTION    4   ginanyarray_consistent(internal, internal, anyarray),
+	FUNCTION    6   ginanyarray_triconsistent(internal, internal, anyarray,internal,internal,internal,internal,internal),
 	STORAGE     float4;
 
 CREATE OPERATOR CLASS _float8_aa_ops
@@ -676,6 +649,7 @@ AS
 	FUNCTION    2   ginanyarray_extract(anyarray, internal),
 	FUNCTION    3   ginanyarray_queryextract(anyarray, internal, internal),
 	FUNCTION    4   ginanyarray_consistent(internal, internal, anyarray),
+	FUNCTION    6   ginanyarray_triconsistent(internal, internal, anyarray,internal,internal,internal,internal,internal),
 	STORAGE     float8;
 
 CREATE OPERATOR CLASS _money_aa_ops
@@ -690,6 +664,7 @@ AS
 	FUNCTION    2   ginanyarray_extract(anyarray, internal),
 	FUNCTION    3   ginanyarray_queryextract(anyarray, internal, internal),
 	FUNCTION    4   ginanyarray_consistent(internal, internal, anyarray),
+	FUNCTION    6   ginanyarray_triconsistent(internal, internal, anyarray,internal,internal,internal,internal,internal),
 	STORAGE     money;
 
 CREATE OPERATOR CLASS _oid_aa_ops
@@ -704,6 +679,7 @@ AS
 	FUNCTION    2   ginanyarray_extract(anyarray, internal),
 	FUNCTION    3   ginanyarray_queryextract(anyarray, internal, internal),
 	FUNCTION    4   ginanyarray_consistent(internal, internal, anyarray),
+	FUNCTION    6   ginanyarray_triconsistent(internal, internal, anyarray,internal,internal,internal,internal,internal),
 	STORAGE     oid;
 
 CREATE OPERATOR CLASS _timestamp_aa_ops
@@ -718,6 +694,7 @@ AS
 	FUNCTION    2   ginanyarray_extract(anyarray, internal),
 	FUNCTION    3   ginanyarray_queryextract(anyarray, internal, internal),
 	FUNCTION    4   ginanyarray_consistent(internal, internal, anyarray),
+	FUNCTION    6   ginanyarray_triconsistent(internal, internal, anyarray,internal,internal,internal,internal,internal),
 	STORAGE     timestamp;
 
 CREATE OPERATOR CLASS _timestamptz_aa_ops
@@ -732,6 +709,7 @@ AS
 	FUNCTION    2   ginanyarray_extract(anyarray, internal),
 	FUNCTION    3   ginanyarray_queryextract(anyarray, internal, internal),
 	FUNCTION    4   ginanyarray_consistent(internal, internal, anyarray),
+	FUNCTION    6   ginanyarray_triconsistent(internal, internal, anyarray,internal,internal,internal,internal,internal),
 	STORAGE     timestamptz;
 
 CREATE OPERATOR CLASS _time_aa_ops
@@ -746,6 +724,7 @@ AS
 	FUNCTION    2   ginanyarray_extract(anyarray, internal),
 	FUNCTION    3   ginanyarray_queryextract(anyarray, internal, internal),
 	FUNCTION    4   ginanyarray_consistent(internal, internal, anyarray),
+	FUNCTION    6   ginanyarray_triconsistent(internal, internal, anyarray,internal,internal,internal,internal,internal),
 	STORAGE     time;
 
 CREATE OPERATOR CLASS _timetz_aa_ops
@@ -760,6 +739,7 @@ AS
 	FUNCTION    2   ginanyarray_extract(anyarray, internal),
 	FUNCTION    3   ginanyarray_queryextract(anyarray, internal, internal),
 	FUNCTION    4   ginanyarray_consistent(internal, internal, anyarray),
+	FUNCTION    6   ginanyarray_triconsistent(internal, internal, anyarray,internal,internal,internal,internal,internal),
 	STORAGE     timetz;
 
 CREATE OPERATOR CLASS _date_aa_ops
@@ -774,6 +754,7 @@ AS
 	FUNCTION    2   ginanyarray_extract(anyarray, internal),
 	FUNCTION    3   ginanyarray_queryextract(anyarray, internal, internal),
 	FUNCTION    4   ginanyarray_consistent(internal, internal, anyarray),
+	FUNCTION    6   ginanyarray_triconsistent(internal, internal, anyarray,internal,internal,internal,internal,internal),
 	STORAGE     date;
 
 CREATE OPERATOR CLASS _interval_aa_ops
@@ -788,6 +769,7 @@ AS
 	FUNCTION    2   ginanyarray_extract(anyarray, internal),
 	FUNCTION    3   ginanyarray_queryextract(anyarray, internal, internal),
 	FUNCTION    4   ginanyarray_consistent(internal, internal, anyarray),
+	FUNCTION    6   ginanyarray_triconsistent(internal, internal, anyarray,internal,internal,internal,internal,internal),
 	STORAGE     interval;
 
 CREATE OPERATOR CLASS _macaddr_aa_ops
@@ -802,6 +784,7 @@ AS
 	FUNCTION    2   ginanyarray_extract(anyarray, internal),
 	FUNCTION    3   ginanyarray_queryextract(anyarray, internal, internal),
 	FUNCTION    4   ginanyarray_consistent(internal, internal, anyarray),
+	FUNCTION    6   ginanyarray_triconsistent(internal, internal, anyarray,internal,internal,internal,internal,internal),
 	STORAGE     macaddr;
 
 CREATE OPERATOR CLASS _inet_aa_ops
@@ -816,6 +799,7 @@ AS
 	FUNCTION    2   ginanyarray_extract(anyarray, internal),
 	FUNCTION    3   ginanyarray_queryextract(anyarray, internal, internal),
 	FUNCTION    4   ginanyarray_consistent(internal, internal, anyarray),
+	FUNCTION    6   ginanyarray_triconsistent(internal, internal, anyarray,internal,internal,internal,internal,internal),
 	STORAGE     inet;
 
 CREATE OPERATOR CLASS _cidr_aa_ops
@@ -830,6 +814,7 @@ AS
 	FUNCTION    2   ginanyarray_extract(anyarray, internal),
 	FUNCTION    3   ginanyarray_queryextract(anyarray, internal, internal),
 	FUNCTION    4   ginanyarray_consistent(internal, internal, anyarray),
+	FUNCTION    6   ginanyarray_triconsistent(internal, internal, anyarray,internal,internal,internal,internal,internal),
 	STORAGE     cidr;
 
 CREATE OPERATOR CLASS _text_aa_ops
@@ -844,6 +829,7 @@ AS
 	FUNCTION    2   ginanyarray_extract(anyarray, internal),
 	FUNCTION    3   ginanyarray_queryextract(anyarray, internal, internal),
 	FUNCTION    4   ginanyarray_consistent(internal, internal, anyarray),
+	FUNCTION    6   ginanyarray_triconsistent(internal, internal, anyarray,internal,internal,internal,internal,internal),
 	STORAGE     text;
 
 CREATE OPERATOR CLASS _varchar_aa_ops
@@ -858,6 +844,7 @@ AS
 	FUNCTION    2   ginanyarray_extract(anyarray, internal),
 	FUNCTION    3   ginanyarray_queryextract(anyarray, internal, internal),
 	FUNCTION    4   ginanyarray_consistent(internal, internal, anyarray),
+	FUNCTION    6   ginanyarray_triconsistent(internal, internal, anyarray,internal,internal,internal,internal,internal),
 	STORAGE     varchar;
 
 CREATE OPERATOR CLASS _char_aa_ops
@@ -872,6 +859,7 @@ AS
 	FUNCTION    2   ginanyarray_extract(anyarray, internal),
 	FUNCTION    3   ginanyarray_queryextract(anyarray, internal, internal),
 	FUNCTION    4   ginanyarray_consistent(internal, internal, anyarray),
+	FUNCTION    6   ginanyarray_triconsistent(internal, internal, anyarray,internal,internal,internal,internal,internal),
 	STORAGE     "char";
 
 CREATE OPERATOR CLASS _bytea_aa_ops
@@ -886,6 +874,7 @@ AS
 	FUNCTION    2   ginanyarray_extract(anyarray, internal),
 	FUNCTION    3   ginanyarray_queryextract(anyarray, internal, internal),
 	FUNCTION    4   ginanyarray_consistent(internal, internal, anyarray),
+	FUNCTION    6   ginanyarray_triconsistent(internal, internal, anyarray,internal,internal,internal,internal,internal),
 	STORAGE     bytea;
 
 CREATE OPERATOR CLASS _bit_aa_ops
@@ -900,6 +889,7 @@ AS
 	FUNCTION    2   ginanyarray_extract(anyarray, internal),
 	FUNCTION    3   ginanyarray_queryextract(anyarray, internal, internal),
 	FUNCTION    4   ginanyarray_consistent(internal, internal, anyarray),
+	FUNCTION    6   ginanyarray_triconsistent(internal, internal, anyarray,internal,internal,internal,internal,internal),
 	STORAGE     bit;
 
 CREATE OPERATOR CLASS _varbit_aa_ops
@@ -914,6 +904,7 @@ AS
 	FUNCTION    2   ginanyarray_extract(anyarray, internal),
 	FUNCTION    3   ginanyarray_queryextract(anyarray, internal, internal),
 	FUNCTION    4   ginanyarray_consistent(internal, internal, anyarray),
+	FUNCTION    6   ginanyarray_triconsistent(internal, internal, anyarray,internal,internal,internal,internal,internal),
 	STORAGE     varbit;
 
 CREATE OPERATOR CLASS _numeric_aa_ops
@@ -928,5 +919,5 @@ AS
 	FUNCTION    2   ginanyarray_extract(anyarray, internal),
 	FUNCTION    3   ginanyarray_queryextract(anyarray, internal, internal),
 	FUNCTION    4   ginanyarray_consistent(internal, internal, anyarray),
+	FUNCTION    6   ginanyarray_triconsistent(internal, internal, anyarray,internal,internal,internal,internal,internal),
 	STORAGE     numeric;
-
