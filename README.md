@@ -4,7 +4,7 @@ AnyArray – 1-D anyarray functionality for PostgreSQL
 Introduction
 ------------
 
-AnyArray – is a PostgreSQL extension which implements 1-D anyarray
+AnyArray is a PostgreSQL extension which implements 1-D anyarray
 functionality.
 
 
@@ -236,6 +236,7 @@ Install the latest version and run in every database you want to upgrade:
 ```
 ALTER EXTENSION anyarray UPDATE;
 ```
+You need to close this database server connection to apply changes.
 
 You can check the version in the current database with psql command:
 
