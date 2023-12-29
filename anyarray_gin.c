@@ -194,3 +194,135 @@ ginanyarray_consistent(PG_FUNCTION_ARGS)
 
 	PG_RETURN_BOOL(res);
 }
+
+
+PG_FUNCTION_INFO_V1(ginanyarray_triconsistent);
+Datum
+ginanyarray_triconsistent(PG_FUNCTION_ARGS)
+{
+	GinTernaryValue *check = (GinTernaryValue *)PG_GETARG_POINTER(0);
+	StrategyNumber 	strategy = PG_GETARG_UINT16(1);
+	int32			nkeys = PG_GETARG_INT32(3);
+	/* Pointer	   	*extra_data = (Pointer *) PG_GETARG_POINTER(4); */
+	GinTernaryValue res = GIN_MAYBE;
+	int32			i;
+
+	switch (strategy)
+	{
+		case RTOverlapStrategyNumber:
+			/* if at least one element in check[] is GIN_TRUE, so result = GIN_TRUE
+			*  otherwise if at least one element in check[] is GIN_MAYBE, so result = GIN_MAYBE
+			*  otherwise result = GIN_FALSE
+			*/
+			res = GIN_FALSE;
+			for (i = 0; i < nkeys; i++)
+			{
+				if (check[i] == GIN_TRUE)
+				{
+					res = GIN_TRUE;
+					break;
+				} else if (check[i] == GIN_MAYBE)
+				{
+					res = GIN_MAYBE;
+				} 
+			}
+			break;
+		case RTContainedByStrategyNumber:
+			/* at least one element in check[] is GIN_TRUE or GIN_MAYBE, so result = GIN_MAYBE (we will need recheck in any case) */
+			res = GIN_MAYBE;
+			break;
+		case RTSameStrategyNumber:
+			/* if at least one element in check[] is GIN_FALSE, so result = GIN_FALSE
+			*  otherwise result = GIN_MAYBE
+			*/
+			res = GIN_MAYBE;
+			for (i = 0; i < nkeys; i++)
+			{
+				if (check[i] == GIN_FALSE)
+				{
+					res = GIN_FALSE;
+					break;
+				} 
+			}
+			break;
+		case RTContainsStrategyNumber:
+			/* if at least one element in check[] is GIN_FALSE, so result = GIN_FALSE
+			*  otherwise if at least one element in check[] is GIN_MAYBE, so result = GIN_MAYBE
+			*  otherwise result = GIN_TRUE
+			*/
+			res = GIN_TRUE;
+			for (i = 0; i < nkeys; i++)
+			{
+				if (check[i] == GIN_FALSE)
+				{
+					res = GIN_FALSE;
+					break;
+				} else if (check[i] == GIN_MAYBE)
+				{
+					res = GIN_MAYBE;
+				} 
+			}
+			break;
+		case AnyAarraySimilarityStrategy:
+			{
+				int32	nIntersectionMin = 0;
+				int32	nIntersectionMax = 0;
+
+				res = GIN_FALSE;
+				for (i = 0; i < nkeys; i++)
+				{
+					if (check[i] == GIN_TRUE)
+					{
+						nIntersectionMin++;
+						nIntersectionMax++;
+					} else if (check[i] == GIN_MAYBE)
+					{
+						nIntersectionMax++;
+						res = GIN_MAYBE;
+					}
+				}
+
+				switch(SmlType)
+				{
+					case AA_Cosine:
+						/* nIntersection / sqrt(nkeys * nIntersection) */
+						if(sqrt(((double)nIntersectionMax) / (double)nkeys) < SmlLimit){
+							res = GIN_FALSE;	
+						} else {
+							res = GIN_MAYBE;
+						}
+						break;
+					case AA_Jaccard:
+						if((((double)nIntersectionMax) / (double)nkeys) < SmlLimit){
+							res = GIN_FALSE;	
+						} else {
+							res = GIN_MAYBE;
+						}
+						break;
+					case AA_Overlap:
+						/*  nIntersectionMin - quantity of GIN_TRUE in check array
+						*   nIntersectionMax - quantity of GIN_TRUE and GIN_MAYBE in check array
+						*  if nIntersectionMin >= SmlLimit, so result = GIN_TRUE
+						*  if nIntersectionMax < SmlLimit, so result = GIN_FALSE
+						*  otherwise if at least one element in check[] is GIN_MAYBE, so result = GIN_MAYBE
+						*  otherwise result = GIN_FALSE
+						*/
+						if(((double)nIntersectionMin) >= SmlLimit)
+						{
+							res = GIN_TRUE;
+						} else if(((double)nIntersectionMax) < SmlLimit)
+						{
+							res = GIN_FALSE;
+						} 
+						break;
+					default:
+						elog(ERROR, "unknown similarity type");
+				}
+			}
+			break;
+		default:
+			elog(ERROR, "ginanyarray_triconsistent: unknown strategy number: %d",
+				 strategy);
+	}
+	PG_RETURN_GIN_TERNARY_VALUE(res);
+}
