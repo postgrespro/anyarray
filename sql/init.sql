@@ -1,4 +1,4 @@
-CREATE EXTENSION anyarray;
+CREATE EXTENSION anyarray CASCADE;
 
 --sanity check
 SELECT 

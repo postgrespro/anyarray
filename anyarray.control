@@ -1,5 +1,6 @@
 # anyarray extension
 comment = 'functions, operators, and index support for 1-D arrays'
-default_version = '1.0'
+default_version = '1.2'
 module_pathname = '$libdir/anyarray'
 relocatable = true
+requires = 'rum'

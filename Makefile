@@ -2,10 +2,10 @@
 
 MODULE_big = anyarray
 OBJS = anyarray.o anyarray_util.o anyarray_guc.o \
-		anyarray_gist.o anyarray_gin.o
+		anyarray_gist.o anyarray_gin.o anyarray_rum.o
 
 EXTENSION = anyarray
-DATA = anyarray--1.0.sql
+DATA = anyarray--1.0.sql anyarray--1.2.sql
 PGFILEDESC = "anyarray - functions and operators for one-dimensional arrays"
 
 REGRESS = init anyarray \
@@ -13,7 +13,7 @@ REGRESS = init anyarray \
 	text varchar char varbit bit bytea \
 	interval money oid \
 	timestamp timestamptz time timetz date \
-	macaddr inet cidr 
+	macaddr inet cidr anyarrayrum
 
 ifdef USE_PGXS
 PG_CONFIG = pg_config

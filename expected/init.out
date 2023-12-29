@@ -1,4 +1,5 @@
-CREATE EXTENSION anyarray;
+CREATE EXTENSION anyarray CASCADE;
+NOTICE:  installing required extension "rum"
 --sanity check
 SELECT 
 	opc.opcname, 
