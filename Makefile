@@ -8,7 +8,7 @@ EXTENSION = anyarray
 DATA = anyarray--1.0.sql anyarray--1.2.sql
 PGFILEDESC = "anyarray - functions and operators for one-dimensional arrays"
 
-REGRESS = init anyarray \
+REGRESS = security init anyarray \
 	int2 int4 int8 float4 float8 numeric \
 	text varchar char varbit bit bytea \
 	interval money oid \

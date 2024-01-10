@@ -40,10 +40,27 @@ RUM support functions
         Datum *rum_extract_value(Datum itemValue, int32 *nkeys, bool **nullFlags, Datum **addInfo, bool **nullFlagsAddInfo)
         Datum *rum_extract_query(Datum query, int32 *nkeys, StrategyNumber n, bool **pmatch, Pointer **extra_data, 
          bool **nullFlags, int32 *searchMode)
-        bool consistent(bool check[], StrategyNumber n, Datum query, int32 nkeys, Pointer extra_data[], 
+        bool rum_consistent(bool check[], StrategyNumber n, Datum query, int32 nkeys, Pointer extra_data[], 
          bool *recheck, Datum queryKeys[], bool nullFlags[], Datum **addInfo, bool **nullFlagsAddInfo)
         int32 rum_compare_prefix(Datum a, Datum b,StrategyNumber n,void *addInfo) 
         void rum_config(RumConfig *config)
+
+        bool rum_pre_consistent(bool check[], StrategyNumber n, Datum query, int32 nkeys, Pointer extra_data[], 
+         bool *recheck, Datum queryKeys[], bool nullFlags[])
+        Return value:
+         false if index key value is not consistent with query
+         true if key value MAYBE consistent and will be rechecked in rum_consistent function
+        Parameters:
+         check[] contains false, if element is not match any query element. 
+                 if all elements in check[] equal to true, this function is not called
+                 if all elements in check[] equal to false, this function is not called 
+         StrategyNumber - the number of the strategy from the class operator        
+         query
+         nkeys quantity of elements in check[]. If nkeys==0, this function is not called
+         recheck - parameter is not used
+         queryKeys[] - returned by rum_extract_query
+         nullFlags[] - returned by rum_extract_query (or all false, if rum_extract_query did not return nullFlags)  
+
         double rum_ordering_distance(bool check[], ?StrategyNumber n, ?Datum query, int32 nkeys, ?Pointer extra_data[], 
          ?bool *recheck, ?Datum queryKeys[], ?bool nullFlags[], Datum **addInfo, bool **nullFlagsAddInfo)
         Datum rum_join_pos(Datum, Datum)
@@ -228,10 +245,13 @@ rumanyarray_consistent(PG_FUNCTION_ARGS)
 	bool	   *recheck = (bool *) PG_GETARG_POINTER(5);
 
 	/* Datum	   *queryKeys = (Datum *) PG_GETARG_POINTER(6); */
-	bool	   *nullFlags = (bool *) PG_GETARG_POINTER(7);
+
+    /* rumextract_anyarray_query does not return nullFlags, so RUM initializes all them by false */
+	/* bool	   *nullFlags = (bool *) PG_GETARG_POINTER(7); */
 
 	Datum	   *addInfo = (Datum *) PG_GETARG_POINTER(8);
-	bool	   *addInfoIsNull = (bool *) PG_GETARG_POINTER(9);
+    /* rumextract_anyarray_query initializes all addInfoIsNull elements by false */
+	/* bool	   *addInfoIsNull = (bool *) PG_GETARG_POINTER(9); */
 
 	bool		res;
 	int32		i;
@@ -239,10 +259,13 @@ rumanyarray_consistent(PG_FUNCTION_ARGS)
 	switch (strategy)
 	{
 		case RUM_OVERLAP_STRATEGY:
+            /* at least one element in check[] is true, so result = true */
+            *recheck = false;
+            res = true;
 			/* result is not lossy */
-			*recheck = false;
+			/* *recheck = false; */
 			/* must have a match for at least one non-null element */
-			res = false;
+			/* res = false;
 			for (i = 0; i < nkeys; i++)
 			{
 				if (check[i] && !nullFlags[i])
@@ -250,17 +273,17 @@ rumanyarray_consistent(PG_FUNCTION_ARGS)
 					res = true;
 					break;
 				}
-			}
+			}*/
 			break;
 		case RUM_CONTAINS_STRATEGY:
-			/* result is not lossy */
+            /* result is not lossy */
 			*recheck = false;
 
 			/* must have all elements in check[] true, and no nulls */
 			res = true;
 			for (i = 0; i < nkeys; i++)
 			{
-				if (!check[i] || nullFlags[i])
+				if (!check[i] /* || nullFlags[i] */)
 				{
 					res = false;
 					break;
@@ -272,19 +295,28 @@ rumanyarray_consistent(PG_FUNCTION_ARGS)
 			*recheck = true;
 
 			/* query must have <= amount of elements than array */
+            if(nkeys > 0 )
+            {
+			    res = ( DatumGetInt32(addInfo[0]) <= nkeys);
+            } else {
+                /* empty arrays in query and index */
+                *recheck = false;
+                res = true;    
+            }
+			/*
 			res = true;
-			for (i = 0; i < nkeys; i++)
+            for (i = 0; i < nkeys; i++)
 			{
-				if (!addInfoIsNull[i] && DatumGetInt32(addInfo[i]) > nkeys)
+				if ( !addInfoIsNull[i] && DatumGetInt32(addInfo[i]) > nkeys)
 				{
 					res = false;
 					break;
 				}
-			}
+			} */
 			break;
 		case RUM_EQUAL_STRATEGY:
 			/* we will need recheck */
-			*recheck = true;
+			/* *recheck = true; */
 
 			/*
 			 * Must have all elements in check[] true; no discrimination
@@ -293,6 +325,25 @@ rumanyarray_consistent(PG_FUNCTION_ARGS)
 			 *
 			 * Also, query and array must have equal amount of elements.
 			 */
+            *recheck = true;
+            res = true;
+            if(nkeys > 0)
+            {
+                if (DatumGetInt32(addInfo[0]) != nkeys)
+                {
+                    res = false;
+                } else {
+                    for (i = 0; i < nkeys; i++)
+                    {
+                        if (!check[i])
+                        {
+                            res = false;
+                            break;
+                        }
+                    }
+                }
+            }
+            /*
 			res = true;
 			for (i = 0; i < nkeys; i++)
 			{
@@ -307,7 +358,7 @@ rumanyarray_consistent(PG_FUNCTION_ARGS)
 					res = false;
 					break;
 				}
-			}
+			}*/
 			break;
 		case RUM_SIMILAR_STRATEGY:
 			/* we won't need recheck */
@@ -317,36 +368,36 @@ rumanyarray_consistent(PG_FUNCTION_ARGS)
 				int32		intersection = 0,
 							nentries = -1;
 				SimpleArray	sa, sb;
+                float8 sml;
 
 				for (i = 0; i < nkeys; i++)
 					if (check[i])
 						intersection++;
+                if(intersection > 0 )
+                {
+                    /* extract array's length from addInfo */
+                    nentries = DatumGetInt32(addInfo[0]);
+                    /*for (i = 0; i < nkeys; i++)
+                    {
+                        if (!addInfoIsNull[i])
+                        {
+                            nentries = DatumGetInt32(addInfo[i]);
+                            break;
+                        }
+                    } */
 
-				if (intersection > 0)
-				{
-					float8 sml;
+                    /* there must be addInfo */
+                    Assert(nentries >= 0);
 
-					/* extract array's length from addInfo */
-					for (i = 0; i < nkeys; i++)
-					{
-						if (!addInfoIsNull[i])
-						{
-							nentries = DatumGetInt32(addInfo[i]);
-							break;
-						}
-					}
-
-					/* there must be addInfo */
-					Assert(nentries >= 0);
-
-					INIT_DUMMY_SIMPLE_ARRAY(&sa, nentries);
-					INIT_DUMMY_SIMPLE_ARRAY(&sb, nkeys);
-					sml = getSimilarityValue(&sa, &sb, intersection);
-
-					res = (sml >= SmlLimit);
-				}
-				else
-					res = false;
+                    INIT_DUMMY_SIMPLE_ARRAY(&sa, nentries);
+                    INIT_DUMMY_SIMPLE_ARRAY(&sb, nkeys);
+                    sml = getSimilarityValue(&sa, &sb, intersection);
+                } 
+                else 
+                {
+                    sml = 0.0 ;
+                }
+                res = (sml >= SmlLimit);
 			}
 			break;
 		default:
@@ -357,6 +408,87 @@ rumanyarray_consistent(PG_FUNCTION_ARGS)
 
 	PG_RETURN_BOOL(res);
 }
+
+PG_FUNCTION_INFO_V1(rumanyarray_preconsistent);
+Datum
+rumanyarray_preconsistent(PG_FUNCTION_ARGS)
+{
+	bool	   *check = (bool *) PG_GETARG_POINTER(0);
+	StrategyNumber strategy = PG_GETARG_UINT16(1);
+	/* ArrayType  *query = PG_GETARG_ARRAYTYPE_P(2); */
+	int32		nkeys = PG_GETARG_INT32(3);
+	/* Pointer	   *extra_data = (Pointer *) PG_GETARG_POINTER(4); */ 
+	/* bool	   *recheck = (bool *) PG_GETARG_POINTER(5); */
+	/* Datum	   *queryKeys = (Datum *) PG_GETARG_POINTER(6); */ 
+	/* bool	   *nullFlags = (bool *) PG_GETARG_POINTER(7); */
+
+	bool		res;
+	int32		i;
+
+	switch (strategy)
+	{
+		case RUM_OVERLAP_STRATEGY:
+			/* 
+            * at least one check[i]==true
+            * preConsistent function is not called, if all check[i]==false
+            */
+			res = true;
+			break;
+		case RUM_CONTAINS_STRATEGY:
+			/* 
+            * at least one check[i]==false
+            * preConsistent function is not called, if all check[i]==true
+            */
+            res = false;
+			break;
+		case RUM_CONTAINED_STRATEGY:
+			/* we will need recheck */
+			res = true;
+			break;
+		case RUM_EQUAL_STRATEGY:
+			/* 
+            * at least one check[i]==false
+            * preConsistent function is not called, if all check[i]==true
+            */
+            res = false;
+			break;
+		case RUM_SIMILAR_STRATEGY:
+		    {
+				int32		intersection = 0;
+				
+                for (i = 0; i < nkeys; i++)
+					if (check[i])
+						intersection++;
+
+				switch(SmlType)
+				{
+					case AA_Cosine:
+						/* intersection / sqrt(nkeys * intersection) */
+						res = (sqrt(((double)intersection) / (double)nkeys) >= SmlLimit);
+						break;
+					case AA_Jaccard:
+						res = ((((double)intersection) / (double)nkeys) >= SmlLimit);
+						break;
+					case AA_Overlap:
+						/*  
+						*  if intersection >= SmlLimit, so result = true
+						*  if intersection < SmlLimit, so result = false
+						*/
+						res = (((double)intersection) >= SmlLimit);
+						break;
+					default:
+						elog(ERROR, "unknown similarity type");
+				}
+			}
+			break;
+		default:
+			elog(ERROR, "rum_anyarray_preconsistent: unknown strategy number: %d", strategy);
+			res = false;
+	}
+
+	PG_RETURN_BOOL(res);
+}
+
 
 
 PG_FUNCTION_INFO_V1(rumanyarray_ordering);
@@ -689,10 +821,10 @@ rumanyarray_consistent_with_position(PG_FUNCTION_ARGS)
 	/* ArrayType  *query = PG_GETARG_ARRAYTYPE_P(2); */
 	int32		nkeys = PG_GETARG_INT32(3);
 
-	/* Pointer	   *extra_data = (Pointer *) PG_GETARG_POINTER(4); */ Datum	   *extra_data = (Datum *) PG_GETARG_POINTER(4);
+	/* Pointer	   *extra_data = (Pointer *) PG_GETARG_POINTER(4); */ 
 	bool	   *recheck = (bool *) PG_GETARG_POINTER(5);
 
-	/* Datum	   *queryKeys = (Datum *) PG_GETARG_POINTER(6); */ Datum	   *queryKeys = (Datum *) PG_GETARG_POINTER(6);
+	/* Datum	   *queryKeys = (Datum *) PG_GETARG_POINTER(6); */ 
 	bool	   *nullFlags = (bool *) PG_GETARG_POINTER(7);
 
 	Datum	   *addInfo = (Datum *) PG_GETARG_POINTER(8);

@@ -1025,6 +1025,11 @@ RETURNS bool
 AS 'MODULE_PATHNAME'
 LANGUAGE C IMMUTABLE STRICT;
 
+CREATE FUNCTION rumanyarray_preconsistent(internal, smallint, anyarray, integer, internal, internal, internal, internal)
+RETURNS bool
+AS 'MODULE_PATHNAME'
+LANGUAGE C IMMUTABLE STRICT;
+
 CREATE FUNCTION rumanyarray_ordering(internal,smallint,anyarray,int,internal,internal,internal,internal,internal)
 RETURNS float8
 AS 'MODULE_PATHNAME'
@@ -1114,5 +1119,25 @@ AS
 	FUNCTION	3	rumextract_anyarray_query(anyarray,internal,smallint,internal,internal,internal,internal),
 	FUNCTION	4	rumanyarray_consistent(internal,smallint,anyarray,integer,internal,internal,internal,internal),
 	FUNCTION	6	rumanyarray_config(internal),
+	--FUNCTION	7	rumanyarray_preconsistent(internal,smallint,anyarray,integer,internal,internal,internal,internal),
+	FUNCTION	8	rumanyarray_ordering(internal,smallint,anyarray,int,internal,internal,internal,internal,internal),
+	STORAGE int8;
+
+CREATE OPERATOR CLASS _int8_aa_ops_beta
+FOR TYPE _int8  USING rum
+AS
+	OPERATOR	1	&&  (anyarray, anyarray),
+	OPERATOR	2	@>  (anyarray, anyarray),
+	OPERATOR	3	<@  (anyarray, anyarray),
+	OPERATOR	4	=   (anyarray, anyarray),
+	OPERATOR	5	<%%>   (anyarray, anyarray),
+	OPERATOR	20	<==> (anyarray, anyarray) FOR ORDER BY pg_catalog.float_ops,
+	--dispatch function 1 for concrete type
+	FUNCTION    1   btint8cmp(int8,int8),
+	FUNCTION	2	rumextract_anyarray(anyarray,internal,internal,internal,internal),
+	FUNCTION	3	rumextract_anyarray_query(anyarray,internal,smallint,internal,internal,internal,internal),
+	FUNCTION	4	rumanyarray_consistent(internal,smallint,anyarray,integer,internal,internal,internal,internal),
+	FUNCTION	6	rumanyarray_config(internal),
+	FUNCTION	7	rumanyarray_preconsistent(internal,smallint,anyarray,integer,internal,internal,internal,internal),
 	FUNCTION	8	rumanyarray_ordering(internal,smallint,anyarray,int,internal,internal,internal,internal,internal),
 	STORAGE int8;

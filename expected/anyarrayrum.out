@@ -40,7 +40,7 @@ SELECT NULL::int[] <%%> '{1}';
  
 (1 row)
 
-SELECT NULL::int[] <=> '{1}';
+SELECT NULL::int[] <==> '{1}';
  ?column? 
 ----------
          
@@ -454,15 +454,15 @@ SELECT * FROM test_array WHERE i <%%> '{100}';
 ---
 (0 rows)
 
-EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i && '{1}' ORDER BY i <=> '{1}' ASC;
+EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i && '{1}' ORDER BY i <==> '{1}' ASC;
                 QUERY PLAN                
 ------------------------------------------
  Index Scan using idx_array on test_array
    Index Cond: (i && '{1}'::smallint[])
-   Order By: (i <=> '{1}'::smallint[])
+   Order By: (i <==> '{1}'::smallint[])
 (3 rows)
 
-SELECT * FROM test_array WHERE i && '{1}' ORDER BY i <=> '{1}' ASC;
+SELECT * FROM test_array WHERE i && '{1}' ORDER BY i <==> '{1}' ASC;
      i     
 -----------
  {1}
@@ -517,16 +517,16 @@ EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <%%> '{}';
    Filter: (i <%%> '{}'::smallint[])
 (2 rows)
 
-EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i && '{1}' ORDER BY add_info <=> '2016-05-16 14:21:25' LIMIT 10;
+EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i && '{1}' ORDER BY add_info <==> '2016-05-16 14:21:25' LIMIT 10;
                                         QUERY PLAN                                        
 ------------------------------------------------------------------------------------------
  Limit
    ->  Index Scan using idx_array on test_array
          Index Cond: (i && '{1}'::smallint[])
-         Order By: (add_info <=> 'Mon May 16 14:21:25 2016'::timestamp without time zone)
+         Order By: (add_info <==> 'Mon May 16 14:21:25 2016'::timestamp without time zone)
 (4 rows)
 
-SELECT * FROM test_array WHERE i && '{1}' ORDER BY add_info <=> '2016-05-16 14:21:25' LIMIT 10;
+SELECT * FROM test_array WHERE i && '{1}' ORDER BY add_info <==> '2016-05-16 14:21:25' LIMIT 10;
      i     |         add_info         
 -----------+--------------------------
  {1}       | Thu May 19 14:21:25 2016
@@ -852,12 +852,12 @@ CREATE TABLE test_array_order (
 \copy test_array_order(i) from 'data/rum_array.data';
 CREATE INDEX idx_array_order ON test_array_order USING rum (i aa_rum_anyarray_ops);
 EXPLAIN (COSTS OFF)
-SELECT *, i <=> '{51}' from test_array_order WHERE i @> '{23,20}' order by i <=> '{51}';
+SELECT *, i <==> '{51}' from test_array_order WHERE i @> '{23,20}' order by i <==> '{51}';
                       QUERY PLAN                      
 ------------------------------------------------------
  Index Scan using idx_array_order on test_array_order
    Index Cond: (i @> '{23,20}'::smallint[])
-   Order By: (i <=> '{51}'::smallint[])
+   Order By: (i <==> '{51}'::smallint[])
 (3 rows)
 
 SELECT i,
@@ -865,8 +865,8 @@ SELECT i,
 		ELSE distance::numeric(18,14)
 	END distance
 	FROM
-		(SELECT *, (i <=> '{51}') AS distance
-		FROM test_array_order WHERE i @> '{23,20}' ORDER BY i <=> '{51}') t;
+		(SELECT *, (i <==> '{51}') AS distance
+		FROM test_array_order WHERE i @> '{23,20}' ORDER BY i <==> '{51}') t;
           i          |     distance     
 ---------------------+------------------
  {20,23,51}          | 1.73205080756888
