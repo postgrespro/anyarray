@@ -1487,6 +1487,9 @@ AS
         FUNCTION        7       rumanyarray_preconsistent(internal,smallint,anyarray,integer,internal,internal,internal,internal),
         FUNCTION        8       rumanyarray_ordering(internal,smallint,anyarray,int,internal,internal,internal,internal,internal),
         STORAGE varchar;
+/* 
+ *  anyarray support for uuid type in GIST, GIN, RUM
+ */
 
 CREATE OPERATOR CLASS _uuid_aa_ops
 FOR TYPE _uuid USING gist
