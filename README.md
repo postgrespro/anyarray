@@ -82,22 +82,25 @@ Usage
 |`anyarray` @> `anyarray`|RTContainsStrategyNumber 7|RUM_CONTAINS_STRATEGY 2|Contains|
 |`anyarray` <@ `anyarray`|RTContainedByStrategyNumber 8|RUM_CONTAINED_STRATEGY 3|Contained|
 |`anyarray` % `anyarray`|AnyAarraySimilarityStrategy 16 |RUM_SIMILAR_STRATEGY 5|Similarity|
+|`anyarray` <=> `anyarray`|  |20|Distance|
 
 
 ### Similarity search options
 
-Set distance type for similarity search.
+Set distance type for similarity search. Default value cosine.
 ```
 SET anyarray.similarity_type=cosine;
 SET anyarray.similarity_type=jaccard;
 SET anyarray.similarity_type=overlap;
 ```
 
-Set threshold for similarity search.
+Set threshold for similarity search. Default value is 0.6 . RESET value is 0.0 . anyarray.similarity_threshold accept values from 0.0 to 1e10 .
 ```
 SET anyarray.similarity_threshold = 3;
 RESET anyarray.similarity_threshold;
 ```
+
+RUM version 1.2 and 1.3 used variables rum.array_similarity_function and rum.array_similarity_threshold that are obsolete and replaced by anyarray.similarity_type and anyarray.similarity_threshold.
 
 Examples
 -------
