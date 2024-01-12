@@ -83,3 +83,27 @@ SET anyarray.similarity_threshold = 3;
 SELECT t, v FROM test_timetz WHERE v %  to_tsp_array('{0,1,2,3,4,5,6,7,8,9,10}')::timestamptz[]::timetz[] ORDER BY t;
 RESET anyarray.similarity_threshold;
 
+DROP INDEX idx_test_timetz;
+CREATE INDEX idx_test_timetz ON test_timetz USING rum (v _timetz_aa_ops);
+
+SET enable_seqscan=off;
+
+EXPLAIN (COSTS OFF) SELECT t, v FROM test_timetz WHERE v && to_tsp_array('{43,50}')::timestamptz[]::timetz[] ORDER BY t;
+EXPLAIN (COSTS OFF) SELECT t, v FROM test_timetz WHERE v @> to_tsp_array('{43,50}')::timestamptz[]::timetz[] ORDER BY t;
+EXPLAIN (COSTS OFF) SELECT t, v FROM test_timetz WHERE v <@ to_tsp_array('{0,1,2,3,4,5,6,7,8,9,10}')::timestamptz[]::timetz[] ORDER BY t;
+EXPLAIN (COSTS OFF) SELECT t, v FROM test_timetz WHERE v =  to_tsp_array('{0,1,2,3,4,5,6,7,8,9,10}')::timestamptz[]::timetz[] ORDER BY t;
+EXPLAIN (COSTS OFF) SELECT t, v FROM test_timetz WHERE v %  to_tsp_array('{0,1,2,3,4,5,6,7,8,9,10}')::timestamptz[]::timetz[] ORDER BY t;
+
+SELECT t, v FROM test_timetz WHERE v && to_tsp_array('{43,50}')::timestamptz[]::timetz[] ORDER BY t;
+SELECT t, v FROM test_timetz WHERE v @> to_tsp_array('{43,50}')::timestamptz[]::timetz[] ORDER BY t;
+SELECT t, v FROM test_timetz WHERE v <@ to_tsp_array('{0,1,2,3,4,5,6,7,8,9,10}')::timestamptz[]::timetz[] ORDER BY t;
+SELECT t, v FROM test_timetz WHERE v =  to_tsp_array('{0,1,2,3,4,5,6,7,8,9,10}')::timestamptz[]::timetz[] ORDER BY t;
+SET anyarray.similarity_type=cosine;
+SELECT t, v FROM test_timetz WHERE v %  to_tsp_array('{0,1,2,3,4,5,6,7,8,9,10}')::timestamptz[]::timetz[] ORDER BY t;
+SET anyarray.similarity_type=jaccard;
+SELECT t, v FROM test_timetz WHERE v %  to_tsp_array('{0,1,2,3,4,5,6,7,8,9,10}')::timestamptz[]::timetz[] ORDER BY t;
+SET anyarray.similarity_type=overlap;
+SET anyarray.similarity_threshold = 3;
+SELECT t, v FROM test_timetz WHERE v %  to_tsp_array('{0,1,2,3,4,5,6,7,8,9,10}')::timestamptz[]::timetz[] ORDER BY t;
+RESET anyarray.similarity_threshold;
+

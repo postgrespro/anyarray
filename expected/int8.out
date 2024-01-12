@@ -502,6 +502,53 @@ RESET anyarray.similarity_threshold;
 DROP INDEX idx_test_int8;
 CREATE INDEX idx_test_int8 ON test_int8 USING rum (v _int8_aa_ops);
 SET enable_seqscan=off;
+EXPLAIN (COSTS OFF) SELECT t, v FROM test_int8 WHERE v && '{43,50}' ORDER BY t;
+                      QUERY PLAN                      
+------------------------------------------------------
+ Sort
+   Sort Key: t
+   ->  Bitmap Heap Scan on test_int8
+         Recheck Cond: (v && '{43,50}'::bigint[])
+         ->  Bitmap Index Scan on idx_test_int8
+               Index Cond: (v && '{43,50}'::bigint[])
+(6 rows)
+
+EXPLAIN (COSTS OFF) SELECT t, v FROM test_int8 WHERE v @> '{43,50}' ORDER BY t;
+                    QUERY PLAN                     
+---------------------------------------------------
+ Sort
+   Sort Key: t
+   ->  Index Scan using idx_test_int8 on test_int8
+         Index Cond: (v @> '{43,50}'::bigint[])
+(4 rows)
+
+EXPLAIN (COSTS OFF) SELECT t, v FROM test_int8 WHERE v <@ '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
+                           QUERY PLAN                            
+-----------------------------------------------------------------
+ Sort
+   Sort Key: t
+   ->  Index Scan using idx_test_int8 on test_int8
+         Index Cond: (v <@ '{0,1,2,3,4,5,6,7,8,9,10}'::bigint[])
+(4 rows)
+
+EXPLAIN (COSTS OFF) SELECT t, v FROM test_int8 WHERE v =  '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
+                           QUERY PLAN                           
+----------------------------------------------------------------
+ Sort
+   Sort Key: t
+   ->  Index Scan using idx_test_int8 on test_int8
+         Index Cond: (v = '{0,1,2,3,4,5,6,7,8,9,10}'::bigint[])
+(4 rows)
+
+EXPLAIN (COSTS OFF) SELECT t, v FROM test_int8 WHERE v %  '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
+                           QUERY PLAN                           
+----------------------------------------------------------------
+ Sort
+   Sort Key: t
+   ->  Index Scan using idx_test_int8 on test_int8
+         Index Cond: (v % '{0,1,2,3,4,5,6,7,8,9,10}'::bigint[])
+(4 rows)
+
 SELECT t, v FROM test_int8 WHERE v && '{43,50}' ORDER BY t;
  t  |                 v                  
 ----+------------------------------------

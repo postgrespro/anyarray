@@ -83,3 +83,27 @@ SET anyarray.similarity_threshold = 3;
 SELECT t, v FROM test_float8 WHERE v %  '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
 RESET anyarray.similarity_threshold;
 
+DROP INDEX idx_test_float8;
+CREATE INDEX idx_test_float8 ON test_float8 USING rum (v _float8_aa_ops);
+
+SET enable_seqscan=off;
+
+EXPLAIN (COSTS OFF) SELECT t, v FROM test_float8 WHERE v && '{43,50}' ORDER BY t;
+EXPLAIN (COSTS OFF) SELECT t, v FROM test_float8 WHERE v @> '{43,50}' ORDER BY t;
+EXPLAIN (COSTS OFF) SELECT t, v FROM test_float8 WHERE v <@ '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
+EXPLAIN (COSTS OFF) SELECT t, v FROM test_float8 WHERE v =  '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
+EXPLAIN (COSTS OFF) SELECT t, v FROM test_float8 WHERE v %  '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
+
+SELECT t, v FROM test_float8 WHERE v && '{43,50}' ORDER BY t;
+SELECT t, v FROM test_float8 WHERE v @> '{43,50}' ORDER BY t;
+SELECT t, v FROM test_float8 WHERE v <@ '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
+SELECT t, v FROM test_float8 WHERE v =  '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
+SET anyarray.similarity_type=cosine;
+SELECT t, v FROM test_float8 WHERE v %  '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
+SET anyarray.similarity_type=jaccard;
+SELECT t, v FROM test_float8 WHERE v %  '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
+SET anyarray.similarity_type=overlap;
+SET anyarray.similarity_threshold = 3;
+SELECT t, v FROM test_float8 WHERE v %  '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
+RESET anyarray.similarity_threshold;
+

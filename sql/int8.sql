@@ -88,6 +88,12 @@ CREATE INDEX idx_test_int8 ON test_int8 USING rum (v _int8_aa_ops);
 
 SET enable_seqscan=off;
 
+EXPLAIN (COSTS OFF) SELECT t, v FROM test_int8 WHERE v && '{43,50}' ORDER BY t;
+EXPLAIN (COSTS OFF) SELECT t, v FROM test_int8 WHERE v @> '{43,50}' ORDER BY t;
+EXPLAIN (COSTS OFF) SELECT t, v FROM test_int8 WHERE v <@ '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
+EXPLAIN (COSTS OFF) SELECT t, v FROM test_int8 WHERE v =  '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
+EXPLAIN (COSTS OFF) SELECT t, v FROM test_int8 WHERE v %  '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
+
 SELECT t, v FROM test_int8 WHERE v && '{43,50}' ORDER BY t;
 SELECT t, v FROM test_int8 WHERE v @> '{43,50}' ORDER BY t;
 SELECT t, v FROM test_int8 WHERE v <@ '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
