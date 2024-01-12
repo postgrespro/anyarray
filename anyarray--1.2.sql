@@ -982,31 +982,16 @@ RETURNS void
 AS 'MODULE_PATHNAME'
 LANGUAGE C IMMUTABLE STRICT;
 
-
-CREATE FUNCTION rumanyarray_similar(anyarray,anyarray)
-RETURNS bool
-AS 'MODULE_PATHNAME'
-LANGUAGE C STRICT STABLE;
-
-CREATE OPERATOR <%%> (
-	PROCEDURE = rumanyarray_similar,
-	LEFTARG = anyarray,
-	RIGHTARG = anyarray,
-	COMMUTATOR = '<%%>',
-	RESTRICT = contsel,
-	JOIN = contjoinsel
-);
-
 CREATE FUNCTION rumanyarray_distance(anyarray,anyarray)
 RETURNS float8
 AS 'MODULE_PATHNAME'
 LANGUAGE C STRICT STABLE;
 
-CREATE OPERATOR <==> (
+CREATE OPERATOR <=> (
 	PROCEDURE = rumanyarray_distance,
 	LEFTARG = anyarray,
 	RIGHTARG = anyarray,
-	COMMUTATOR = '<==>'
+	COMMUTATOR = '<=>'
 );
 
 
@@ -1043,8 +1028,8 @@ AS
 	OPERATOR	2	@>  (anyarray, anyarray),
 	OPERATOR	3	<@  (anyarray, anyarray),
 	OPERATOR	4	=   (anyarray, anyarray),
-	OPERATOR	5	<%%>   (anyarray, anyarray),
-	OPERATOR	20	<==> (anyarray, anyarray) FOR ORDER BY pg_catalog.float_ops,
+	OPERATOR	5	%   (anyarray, anyarray),
+	OPERATOR	20	<=> (anyarray, anyarray) FOR ORDER BY pg_catalog.float_ops,
 	--dispatch function 1 for concrete type
 	FUNCTION	2	rumextract_anyarray(anyarray,internal,internal,internal,internal),
 	FUNCTION	3	rumextract_anyarray_query(anyarray,internal,smallint,internal,internal,internal,internal),
@@ -1066,44 +1051,6 @@ AS
 	FUNCTION	4	ginarrayconsistent(internal,smallint,anyarray,integer,internal,internal,internal,internal),
 	STORAGE anyelement;
 
-CREATE FUNCTION rumextract_anyarray_with_position(anyarray,internal,internal,internal,internal)
-RETURNS internal
-AS 'MODULE_PATHNAME'
-LANGUAGE C IMMUTABLE STRICT;
-
-CREATE FUNCTION rumextract_anyarray_query_with_position(anyarray,internal,smallint,internal,internal,internal,internal)
-RETURNS internal
-AS 'MODULE_PATHNAME'
-LANGUAGE C IMMUTABLE STRICT;
-
-CREATE FUNCTION rumanyarray_consistent_with_position(internal, smallint, anyarray, integer, internal, internal, internal, internal)
-RETURNS bool
-AS 'MODULE_PATHNAME'
-LANGUAGE C IMMUTABLE STRICT;
-
-/*CREATE FUNCTION rumanyarray_ordering_with_position(internal,smallint,anyarray,int,internal,internal,internal,internal,internal)
-RETURNS float8
-AS 'MODULE_PATHNAME'
-LANGUAGE C IMMUTABLE STRICT;
-*/
-
-CREATE OPERATOR CLASS aa_rum_int8_ops
-FOR TYPE anyarray USING rum
-AS
-	OPERATOR	1	&&  (anyarray, anyarray),
-	OPERATOR	2	@>  (anyarray, anyarray),
-	OPERATOR	3	<@  (anyarray, anyarray),
-	OPERATOR	4	=   (anyarray, anyarray),
-	OPERATOR	5	<%%>   (anyarray, anyarray),
-	OPERATOR	20	<==> (anyarray, anyarray) FOR ORDER BY pg_catalog.float_ops,
-	--dispatch function 1 for concrete type
-	FUNCTION	2	rumextract_anyarray_with_position(anyarray,internal,internal,internal,internal),
-	FUNCTION	3	rumextract_anyarray_query_with_position(anyarray,internal,smallint,internal,internal,internal,internal),
-	FUNCTION	4	rumanyarray_consistent_with_position(internal,smallint,anyarray,integer,internal,internal,internal,internal),
-	FUNCTION	6	rumanyarray_config(internal),
-	FUNCTION	8	rumanyarray_ordering(internal,smallint,anyarray,int,internal,internal,internal,internal,internal),
-	STORAGE anyelement;
-
 CREATE OPERATOR CLASS _int8_aa_ops
 FOR TYPE _int8  USING rum
 AS
@@ -1111,15 +1058,15 @@ AS
 	OPERATOR	2	@>  (anyarray, anyarray),
 	OPERATOR	3	<@  (anyarray, anyarray),
 	OPERATOR	4	=   (anyarray, anyarray),
-	OPERATOR	5	<%%>   (anyarray, anyarray),
-	OPERATOR	20	<==> (anyarray, anyarray) FOR ORDER BY pg_catalog.float_ops,
+	OPERATOR	5	%   (anyarray, anyarray),
+	OPERATOR	20	<=> (anyarray, anyarray) FOR ORDER BY pg_catalog.float_ops,
 	--dispatch function 1 for concrete type
 	FUNCTION    1   btint8cmp(int8,int8),
 	FUNCTION	2	rumextract_anyarray(anyarray,internal,internal,internal,internal),
 	FUNCTION	3	rumextract_anyarray_query(anyarray,internal,smallint,internal,internal,internal,internal),
 	FUNCTION	4	rumanyarray_consistent(internal,smallint,anyarray,integer,internal,internal,internal,internal),
 	FUNCTION	6	rumanyarray_config(internal),
-	--FUNCTION	7	rumanyarray_preconsistent(internal,smallint,anyarray,integer,internal,internal,internal,internal),
+	FUNCTION	7	rumanyarray_preconsistent(internal,smallint,anyarray,integer,internal,internal,internal,internal),
 	FUNCTION	8	rumanyarray_ordering(internal,smallint,anyarray,int,internal,internal,internal,internal,internal),
 	STORAGE int8;
 
@@ -1130,8 +1077,8 @@ AS
 	OPERATOR	2	@>  (anyarray, anyarray),
 	OPERATOR	3	<@  (anyarray, anyarray),
 	OPERATOR	4	=   (anyarray, anyarray),
-	OPERATOR	5	<%%>   (anyarray, anyarray),
-	OPERATOR	20	<==> (anyarray, anyarray) FOR ORDER BY pg_catalog.float_ops,
+	OPERATOR	5	%   (anyarray, anyarray),
+	OPERATOR	20	<=> (anyarray, anyarray) FOR ORDER BY pg_catalog.float_ops,
 	--dispatch function 1 for concrete type
 	FUNCTION    1   btint8cmp(int8,int8),
 	FUNCTION	2	rumextract_anyarray(anyarray,internal,internal,internal,internal),

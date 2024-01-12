@@ -18,8 +18,8 @@ SELECT NULL::int[] = '{1}';
 SELECT NULL::int[] && '{1}';
 SELECT NULL::int[] @> '{1}';
 SELECT NULL::int[] <@ '{1}';
-SELECT NULL::int[] <%%> '{1}';
-SELECT NULL::int[] <==> '{1}';
+SELECT NULL::int[] % '{1}';
+SELECT NULL::int[] <=> '{1}';
 
 INSERT INTO test_array VALUES (NULL);
 SELECT * FROM test_array WHERE i = '{1}';
@@ -74,24 +74,24 @@ SELECT * FROM test_array WHERE i <@ '{4,3,2,1}';
 SELECT * FROM test_array WHERE i <@ '{0,0}';
 SELECT * FROM test_array WHERE i <@ '{100}';
 
-EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <%%> '{}';
-SELECT * FROM test_array WHERE i <%%> '{}';
-SELECT * FROM test_array WHERE i <%%> '{1}';
-SELECT * FROM test_array WHERE i <%%> '{2}';
-SELECT * FROM test_array WHERE i <%%> '{1,2}';
-SELECT * FROM test_array WHERE i <%%> '{1,2,4}';
-SELECT * FROM test_array WHERE i <%%> '{1,2,3,4}';
-SELECT * FROM test_array WHERE i <%%> '{4,3,2,1}';
-SELECT * FROM test_array WHERE i <%%> '{1,2,3,4,5}';
-SELECT * FROM test_array WHERE i <%%> '{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}';
-SELECT * FROM test_array WHERE i <%%> '{1,10,20,30,40,50}';
-SELECT * FROM test_array WHERE i <%%> '{1,10,20,30}';
-SELECT * FROM test_array WHERE i <%%> '{1,1,1,1,1}';
-SELECT * FROM test_array WHERE i <%%> '{0,0}';
-SELECT * FROM test_array WHERE i <%%> '{100}';
+EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i % '{}';
+SELECT * FROM test_array WHERE i % '{}';
+SELECT * FROM test_array WHERE i % '{1}';
+SELECT * FROM test_array WHERE i % '{2}';
+SELECT * FROM test_array WHERE i % '{1,2}';
+SELECT * FROM test_array WHERE i % '{1,2,4}';
+SELECT * FROM test_array WHERE i % '{1,2,3,4}';
+SELECT * FROM test_array WHERE i % '{4,3,2,1}';
+SELECT * FROM test_array WHERE i % '{1,2,3,4,5}';
+SELECT * FROM test_array WHERE i % '{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}';
+SELECT * FROM test_array WHERE i % '{1,10,20,30,40,50}';
+SELECT * FROM test_array WHERE i % '{1,10,20,30}';
+SELECT * FROM test_array WHERE i % '{1,1,1,1,1}';
+SELECT * FROM test_array WHERE i % '{0,0}';
+SELECT * FROM test_array WHERE i % '{100}';
 
-EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i && '{1}' ORDER BY i <==> '{1}' ASC;
-SELECT * FROM test_array WHERE i && '{1}' ORDER BY i <==> '{1}' ASC;
+EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i && '{1}' ORDER BY i <=> '{1}' ASC;
+SELECT * FROM test_array WHERE i && '{1}' ORDER BY i <=> '{1}' ASC;
 
 DROP INDEX idx_array;
 
@@ -113,10 +113,10 @@ EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i = '{}';
 EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i && '{}';
 EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i @> '{}';
 EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <@ '{}';
-EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <%%> '{}';
+EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i % '{}';
 
-EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i && '{1}' ORDER BY add_info <==> '2016-05-16 14:21:25' LIMIT 10;
-SELECT * FROM test_array WHERE i && '{1}' ORDER BY add_info <==> '2016-05-16 14:21:25' LIMIT 10;
+EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i && '{1}' ORDER BY add_info <=> '2016-05-16 14:21:25' LIMIT 10;
+SELECT * FROM test_array WHERE i && '{1}' ORDER BY add_info <=> '2016-05-16 14:21:25' LIMIT 10;
 
 DROP INDEX idx_array;
 
@@ -131,7 +131,7 @@ EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i = '{}';
 EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i && '{}';
 EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i @> '{}';
 EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <@ '{}';
-EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <%%> '{}';
+EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i % '{}';
 DROP INDEX idx_array;
 
 ALTER TABLE test_array ALTER COLUMN i TYPE int8[];
@@ -140,7 +140,7 @@ EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i = '{}';
 EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i && '{}';
 EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i @> '{}';
 EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <@ '{}';
-EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <%%> '{}';
+EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i % '{}';
 DROP INDEX idx_array;
 
 ALTER TABLE test_array ALTER COLUMN i TYPE text[];
@@ -149,7 +149,7 @@ EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i = '{}';
 EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i && '{}';
 EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i @> '{}';
 EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <@ '{}';
-EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <%%> '{}';
+EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i % '{}';
 DROP INDEX idx_array;
 
 ALTER TABLE test_array ALTER COLUMN i TYPE varchar[];
@@ -158,7 +158,7 @@ EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i = '{}';
 EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i && '{}';
 EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i @> '{}';
 EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <@ '{}';
-EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <%%> '{}';
+EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i % '{}';
 DROP INDEX idx_array;
 
 ALTER TABLE test_array ALTER COLUMN i TYPE char[];
@@ -167,7 +167,7 @@ EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i = '{}';
 EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i && '{}';
 EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i @> '{}';
 EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <@ '{}';
-EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <%%> '{}';
+EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i % '{}';
 DROP INDEX idx_array;
 
 ALTER TABLE test_array ALTER COLUMN i TYPE numeric[] USING i::numeric[];
@@ -176,7 +176,7 @@ EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i = '{}';
 EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i && '{}';
 EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i @> '{}';
 EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <@ '{}';
-EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <%%> '{}';
+EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i % '{}';
 DROP INDEX idx_array;
 
 ALTER TABLE test_array ALTER COLUMN i TYPE float4[] USING i::float4[];
@@ -185,7 +185,7 @@ EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i = '{}';
 EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i && '{}';
 EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i @> '{}';
 EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <@ '{}';
-EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <%%> '{}';
+EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i % '{}';
 DROP INDEX idx_array;
 
 ALTER TABLE test_array ALTER COLUMN i TYPE float8[] USING i::float8[];
@@ -194,7 +194,7 @@ EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i = '{}';
 EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i && '{}';
 EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i @> '{}';
 EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <@ '{}';
-EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <%%> '{}';
+EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i % '{}';
 DROP INDEX idx_array;
 
 /*
@@ -209,11 +209,11 @@ CREATE TABLE test_array_order (
 CREATE INDEX idx_array_order ON test_array_order USING rum (i aa_rum_anyarray_ops);
 
 EXPLAIN (COSTS OFF)
-SELECT *, i <==> '{51}' from test_array_order WHERE i @> '{23,20}' order by i <==> '{51}';
+SELECT *, i <=> '{51}' from test_array_order WHERE i @> '{23,20}' order by i <=> '{51}';
 SELECT i,
 	CASE WHEN distance = 'Infinity' THEN -1
 		ELSE distance::numeric(18,14)
 	END distance
 	FROM
-		(SELECT *, (i <==> '{51}') AS distance
-		FROM test_array_order WHERE i @> '{23,20}' ORDER BY i <==> '{51}') t;
+		(SELECT *, (i <=> '{51}') AS distance
+		FROM test_array_order WHERE i @> '{23,20}' ORDER BY i <=> '{51}') t;

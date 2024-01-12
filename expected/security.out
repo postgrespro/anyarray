@@ -1,6 +1,6 @@
 -- Check security CVE-2020-14350
-CREATE FUNCTION rumanyarray_similar(anyarray,anyarray) RETURNS bool AS $$ SELECT false $$ LANGUAGE SQL;
+CREATE FUNCTION rumanyarray_distance(anyarray,anyarray) RETURNS bool AS $$ SELECT false $$ LANGUAGE SQL;
 CREATE EXTENSION anyarray CASCADE;
 NOTICE:  installing required extension "rum"
-ERROR:  function "rumanyarray_similar" already exists with same argument types
-DROP FUNCTION rumanyarray_similar(anyarray,anyarray);
+ERROR:  function "rumanyarray_distance" already exists with same argument types
+DROP FUNCTION rumanyarray_distance(anyarray,anyarray);

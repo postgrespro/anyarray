@@ -96,10 +96,11 @@ RUM support functions
 #define HASHSTANDARD_PROC HASHPROC
 #endif
 
+#ifdef _DELETEIT_
 static float8 getSimilarityValue(SimpleArray *sa, SimpleArray *sb, int32 intersection);
 static int32 getNumOfIntersect(SimpleArray *sa, SimpleArray *sb);
 static int cmpAscArrayElem(const void *a, const void *b, void *arg);
-
+#endif
 /*
  * Specifies additional information type for operator class.
  */
@@ -246,12 +247,16 @@ rumanyarray_consistent(PG_FUNCTION_ARGS)
 
 	/* Datum	   *queryKeys = (Datum *) PG_GETARG_POINTER(6); */
 
-    /* rumextract_anyarray_query does not return nullFlags, so RUM initializes all them by false */
+/* rumextract_anyarray_query does not return nullFlags, so RUM initializes all them by false */
 	/* bool	   *nullFlags = (bool *) PG_GETARG_POINTER(7); */
 
+/* 
+*  RUM initializes addInfo and addInfoIsNull :
+*  if check[i]==false, then addInfo[i] equals to (Datum)0, addInfoIsNull[i] equals to true 
+*  if check[i]==true,  then addInfo[i] equals to AddInfo value stored in index, addInfoIsNull[i] equals to false 
+*/
 	Datum	   *addInfo = (Datum *) PG_GETARG_POINTER(8);
-    /* rumextract_anyarray_query initializes all addInfoIsNull elements by false */
-	/* bool	   *addInfoIsNull = (bool *) PG_GETARG_POINTER(9); */
+    bool	   *addInfoIsNull = (bool *) PG_GETARG_POINTER(9); 
 
 	bool		res;
 	int32		i;
@@ -292,19 +297,10 @@ rumanyarray_consistent(PG_FUNCTION_ARGS)
 			break;
 		case RUM_CONTAINED_STRATEGY:
 			/* we will need recheck */
-			*recheck = true;
+			/* *recheck = true; */
 
 			/* query must have <= amount of elements than array */
-            if(nkeys > 0 )
-            {
-			    res = ( DatumGetInt32(addInfo[0]) <= nkeys);
-            } else {
-                /* empty arrays in query and index */
-                *recheck = false;
-                res = true;    
-            }
-			/*
-			res = true;
+            /* res = true;
             for (i = 0; i < nkeys; i++)
 			{
 				if ( !addInfoIsNull[i] && DatumGetInt32(addInfo[i]) > nkeys)
@@ -313,10 +309,43 @@ rumanyarray_consistent(PG_FUNCTION_ARGS)
 					break;
 				}
 			} */
+
+            /* we will not need recheck, use addInfo to decide if tuple contains all elements from query */
+            {
+                *recheck = false;
+                res = true;
+                int32		intersection = 0,
+                                nentries = 0;
+                
+                for (i = 0; i < nkeys; i++)
+                {
+                    if (check[i])
+                    {
+                        if (!nentries && !addInfoIsNull[i]) 
+                        {
+                            nentries = DatumGetInt32(addInfo[i]);
+                            if(nentries > nkeys)
+                            {
+                                res = false;
+                                break;
+                            }
+                        }
+                        intersection++;
+                    }            
+                }
+                /* if elements quantity in key equals to total quantity of elements in array ,we do not need to recheck */
+                if(res)
+                {
+                    if(nentries != intersection)
+                    {
+                        res = false;
+                    }
+                }
+            } 
 			break;
 		case RUM_EQUAL_STRATEGY:
 			/* we will need recheck */
-			/* *recheck = true; */
+			*recheck = true; 
 
 			/*
 			 * Must have all elements in check[] true; no discrimination
@@ -325,26 +354,7 @@ rumanyarray_consistent(PG_FUNCTION_ARGS)
 			 *
 			 * Also, query and array must have equal amount of elements.
 			 */
-            *recheck = true;
             res = true;
-            if(nkeys > 0)
-            {
-                if (DatumGetInt32(addInfo[0]) != nkeys)
-                {
-                    res = false;
-                } else {
-                    for (i = 0; i < nkeys; i++)
-                    {
-                        if (!check[i])
-                        {
-                            res = false;
-                            break;
-                        }
-                    }
-                }
-            }
-            /*
-			res = true;
 			for (i = 0; i < nkeys; i++)
 			{
 				if (!check[i])
@@ -358,7 +368,7 @@ rumanyarray_consistent(PG_FUNCTION_ARGS)
 					res = false;
 					break;
 				}
-			}*/
+			}
 			break;
 		case RUM_SIMILAR_STRATEGY:
 			/* we won't need recheck */
@@ -367,8 +377,7 @@ rumanyarray_consistent(PG_FUNCTION_ARGS)
 			{
 				int32		intersection = 0,
 							nentries = -1;
-				SimpleArray	sa, sb;
-                float8 sml;
+				float8 sml;
 
 				for (i = 0; i < nkeys; i++)
 					if (check[i])
@@ -376,22 +385,30 @@ rumanyarray_consistent(PG_FUNCTION_ARGS)
                 if(intersection > 0 )
                 {
                     /* extract array's length from addInfo */
-                    nentries = DatumGetInt32(addInfo[0]);
-                    /*for (i = 0; i < nkeys; i++)
+                    for (i = 0; i < nkeys; i++)
                     {
                         if (!addInfoIsNull[i])
                         {
                             nentries = DatumGetInt32(addInfo[i]);
                             break;
                         }
-                    } */
+                    } 
 
                     /* there must be addInfo */
                     Assert(nentries >= 0);
-
-                    INIT_DUMMY_SIMPLE_ARRAY(&sa, nentries);
-                    INIT_DUMMY_SIMPLE_ARRAY(&sb, nkeys);
-                    sml = getSimilarityValue(&sa, &sb, intersection);
+                    if(nentries == 0)
+                    {
+                        sml = 0.0; /* empty key */
+                    }
+                    else {
+                        /* 
+                        SimpleArray	sa, sb;
+                        INIT_DUMMY_SIMPLE_ARRAY(&sa, nentries);
+                        INIT_DUMMY_SIMPLE_ARRAY(&sb, nkeys);
+                        sml = getSimilarityValue(&sa, &sb, intersection);
+                        */
+                        sml = getSimilarityValue(nentries, nkeys, intersection);
+                    }
                 } 
                 else 
                 {
@@ -509,8 +526,6 @@ rumanyarray_ordering(PG_FUNCTION_ARGS)
 				nentries = -1;
 	int			i;
 
-	SimpleArray	sa, sb;
-
 	for (i = 0; i < nkeys; i++)
 		if (check[i])
 			intersection++;
@@ -529,17 +544,22 @@ rumanyarray_ordering(PG_FUNCTION_ARGS)
 
 		/* there must be addInfo */
 		Assert(nentries >= 0);
+        /* 
+        SimpleArray	sa, sb;
 
+	
 		INIT_DUMMY_SIMPLE_ARRAY(&sa, nentries);
 		INIT_DUMMY_SIMPLE_ARRAY(&sb, nkeys);
 		sml = getSimilarityValue(&sa, &sb, intersection);
-
-		PG_RETURN_FLOAT8(DIST_FROM_SML(sml));
+        */
+        sml = getSimilarityValue(nkeys, nentries, intersection);
+        PG_RETURN_FLOAT8(DIST_FROM_SML(sml));
 	}
 
 	PG_RETURN_FLOAT8(DIST_FROM_SML(0.0));
 }
 
+#ifdef _DELETEIT_
 PG_FUNCTION_INFO_V1(rumanyarray_similar);
 Datum
 rumanyarray_similar(PG_FUNCTION_ARGS)
@@ -580,6 +600,7 @@ rumanyarray_similar(PG_FUNCTION_ARGS)
 
 	PG_RETURN_BOOL(result >= SmlLimit);
 }
+#endif
 
 PG_FUNCTION_INFO_V1(rumanyarray_distance);
 Datum
@@ -611,7 +632,7 @@ rumanyarray_distance(PG_FUNCTION_ARGS)
 	sa = Array2SimpleArray(info, a);
 	sb = Array2SimpleArray(info, b);
 
-	sml = getSimilarityValue(sa, sb, getNumOfIntersect(sa, sb));
+	sml = getSimilarityValue(sa->nelems, sb->nelems, numOfIntersect(sa, sb));
 
 	freeSimpleArray(sb);
 	freeSimpleArray(sa);
@@ -621,7 +642,7 @@ rumanyarray_distance(PG_FUNCTION_ARGS)
 
 	PG_RETURN_FLOAT8(DIST_FROM_SML(sml));
 }
-
+#ifdef _DELETEIT_
 
 
 static int
@@ -699,258 +720,4 @@ getSimilarityValue(SimpleArray *sa, SimpleArray *sb, int32 intersection)
 	return result;
 }
 
-PG_FUNCTION_INFO_V1(rumextract_anyarray_with_position);
-/*
- * Extract entries and queries
- */
-
-/* Enhanced version of ginarrayextract() */
-Datum
-rumextract_anyarray_with_position(PG_FUNCTION_ARGS)
-{
-	/* Make copy of array input to ensure it doesn't disappear while in use */
-	ArrayType		   *array = PG_GETARG_ARRAYTYPE_P_COPY(0);
-	SimpleArray		   *sa;
-	AnyArrayTypeInfo   *info;
-
-	int32			   *nentries = (int32 *) PG_GETARG_POINTER(1);
-
-	Datum			  **addInfo = (Datum **) PG_GETARG_POINTER(3);
-	bool			  **addInfoIsNull = (bool **) PG_GETARG_POINTER(4);
-
-	int					i;
-
-	CHECKARRVALID(array);
-
-	info = getAnyArrayTypeInfoCached(fcinfo, ARR_ELEMTYPE(array));
-
-	sa = Array2SimpleArray(info, array);
-	//sortSimpleArray(sa, 1);
-	//uniqSimpleArray(sa, false);
-
-	*nentries = sa->nelems;
-	*addInfo = (Datum *) palloc(*nentries * sizeof(Datum));
-	*addInfoIsNull = (bool *) palloc(*nentries * sizeof(bool));
-
-	for (i = 0; i < *nentries; i++)
-	{
-		/* Use array's size as additional info */
-		(*addInfo)[i] = Int32GetDatum(i);
-		(*addInfoIsNull)[i] = BoolGetDatum(false);
-	}
-
-	/* we should not free array, entries[i] points into it */
-	PG_RETURN_POINTER(sa->elems);
-}
-
-PG_FUNCTION_INFO_V1(rumextract_anyarray_query_with_position);
-/* Enhanced version of ginqueryarrayextract() */
-Datum
-rumextract_anyarray_query_with_position(PG_FUNCTION_ARGS)
-{
-	/* Make copy of array input to ensure it doesn't disappear while in use */
-	ArrayType		   *array = PG_GETARG_ARRAYTYPE_P_COPY(0);
-	SimpleArray		   *sa;
-	AnyArrayTypeInfo   *info;
-
-	int32			   *nentries = (int32 *) PG_GETARG_POINTER(1);
-
-	StrategyNumber		strategy = PG_GETARG_UINT16(2);
-	int32			   *searchMode = (int32 *) PG_GETARG_POINTER(6);
-
-	CHECKARRVALID(array);
-
-	info = getAnyArrayTypeInfoCached(fcinfo, ARR_ELEMTYPE(array));
-
-	sa = Array2SimpleArray(info, array);
-	//sortSimpleArray(sa, 1);
-	//uniqSimpleArray(sa, false);
-
-	*nentries = sa->nelems;
-
-	switch (strategy)
-	{
-		case RUM_OVERLAP_STRATEGY:
-			*searchMode = GIN_SEARCH_MODE_DEFAULT;
-			break;
-		case RUM_CONTAINS_STRATEGY:
-			if (*nentries > 0)
-				*searchMode = GIN_SEARCH_MODE_DEFAULT;
-			else	/* everything contains the empty set */
-				*searchMode = GIN_SEARCH_MODE_ALL;
-			break;
-		case RUM_CONTAINED_STRATEGY:
-			/* empty set is contained in everything */
-			*searchMode = GIN_SEARCH_MODE_INCLUDE_EMPTY;
-			break;
-		case RUM_EQUAL_STRATEGY:
-			if (*nentries > 0)
-				*searchMode = GIN_SEARCH_MODE_DEFAULT;
-			else
-				*searchMode = GIN_SEARCH_MODE_INCLUDE_EMPTY;
-			break;
-		case RUM_SIMILAR_STRATEGY:
-			*searchMode = GIN_SEARCH_MODE_DEFAULT;
-			break;
-		/* Special case for distance */
-		case RUM_DISTANCE:
-			*searchMode = GIN_SEARCH_MODE_DEFAULT;
-			break;
-		default:
-			elog(ERROR, "rum_extract_anyarray_query: unknown strategy number: %d",
-				 strategy);
-	}
-
-	/* we should not free array, elems[i] points into it */
-	PG_RETURN_POINTER(sa->elems);
-}
-
-PG_FUNCTION_INFO_V1(rumanyarray_consistent_with_position);
-/*
- * Consistency check
- */
-
-/* Enhanced version of ginarrayconsistent() */
-Datum
-rumanyarray_consistent_with_position(PG_FUNCTION_ARGS)
-{
-	bool	   *check = (bool *) PG_GETARG_POINTER(0);
-
-	StrategyNumber strategy = PG_GETARG_UINT16(1);
-
-	/* ArrayType  *query = PG_GETARG_ARRAYTYPE_P(2); */
-	int32		nkeys = PG_GETARG_INT32(3);
-
-	/* Pointer	   *extra_data = (Pointer *) PG_GETARG_POINTER(4); */ 
-	bool	   *recheck = (bool *) PG_GETARG_POINTER(5);
-
-	/* Datum	   *queryKeys = (Datum *) PG_GETARG_POINTER(6); */ 
-	bool	   *nullFlags = (bool *) PG_GETARG_POINTER(7);
-
-	Datum	   *addInfo = (Datum *) PG_GETARG_POINTER(8);
-	bool	   *addInfoIsNull = (bool *) PG_GETARG_POINTER(9);
-
-	bool		res;
-	int32		i;
-
-	switch (strategy)
-	{
-		case RUM_OVERLAP_STRATEGY:
-			/* result is not lossy */
-			*recheck = false;
-			/* must have a match for at least one non-null element */
-			res = false;
-			for (i = 0; i < nkeys; i++)
-			{
-				if (check[i] && !nullFlags[i])
-				{
-					res = true;
-					break;
-				}
-			}
-			break;
-		case RUM_CONTAINS_STRATEGY:
-			/* result is not lossy */
-			*recheck = false;
-
-			/* must have all elements in check[] true, and no nulls */
-			res = true;
-			for (i = 0; i < nkeys; i++)
-			{
-				if (!check[i] || nullFlags[i])
-				{
-					res = false;
-					break;
-				}
-			}
-			break;
-		case RUM_CONTAINED_STRATEGY:
-			/* we will need recheck */
-			*recheck = true;
-
-			/* query must have <= amount of elements than array */
-			res = true;
-			for (i = 0; i < nkeys; i++)
-			{
-				if (!addInfoIsNull[i] && DatumGetInt32(addInfo[i]) > nkeys)
-				{
-					res = false;
-					break;
-				}
-			}
-			break;
-		case RUM_EQUAL_STRATEGY:
-			/* we will need recheck */
-			*recheck = true;
-
-			/*
-			 * Must have all elements in check[] true; no discrimination
-			 * against nulls here.  This is because array_contain_compare and
-			 * array_eq handle nulls differently ...
-			 *
-			 * Also, query and array must have equal amount of elements.
-			 */
-			res = true;
-			for (i = 0; i < nkeys; i++)
-			{
-				if (!check[i])
-				{
-					res = false;
-					break;
-				}
-
-				if (!addInfoIsNull[i] && DatumGetInt32(addInfo[i]) != nkeys)
-				{
-					res = false;
-					break;
-				}
-			}
-			break;
-		case RUM_SIMILAR_STRATEGY:
-			/* we won't need recheck */
-			*recheck = false;
-
-			{
-				int32		intersection = 0,
-							nentries = -1;
-				SimpleArray	sa, sb;
-
-				for (i = 0; i < nkeys; i++)
-					if (check[i])
-						intersection++;
-
-				if (intersection > 0)
-				{
-					float8 sml;
-
-					/* extract array's length from addInfo */
-					for (i = 0; i < nkeys; i++)
-					{
-						if (!addInfoIsNull[i])
-						{
-							nentries = DatumGetInt32(addInfo[i]);
-							break;
-						}
-					}
-
-					/* there must be addInfo */
-					Assert(nentries >= 0);
-
-					INIT_DUMMY_SIMPLE_ARRAY(&sa, nentries);
-					INIT_DUMMY_SIMPLE_ARRAY(&sb, nkeys);
-					sml = getSimilarityValue(&sa, &sb, intersection);
-
-					res = (sml >= SmlLimit);
-				}
-				else
-					res = false;
-			}
-			break;
-		default:
-			elog(ERROR, "rum_anyarray_consistent: unknown strategy number: %d",
-				 strategy);
-			res = false;
-	}
-
-	PG_RETURN_BOOL(res);
-}
+#endif

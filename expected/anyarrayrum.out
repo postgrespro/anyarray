@@ -34,13 +34,13 @@ SELECT NULL::int[] <@ '{1}';
  
 (1 row)
 
-SELECT NULL::int[] <%%> '{1}';
+SELECT NULL::int[] % '{1}';
  ?column? 
 ----------
  
 (1 row)
 
-SELECT NULL::int[] <==> '{1}';
+SELECT NULL::int[] <=> '{1}';
  ?column? 
 ----------
          
@@ -344,19 +344,19 @@ SELECT * FROM test_array WHERE i <@ '{100}';
  {}
 (1 row)
 
-EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <%%> '{}';
+EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i % '{}';
                 QUERY PLAN                
 ------------------------------------------
  Index Scan using idx_array on test_array
-   Index Cond: (i <%%> '{}'::smallint[])
+   Index Cond: (i % '{}'::smallint[])
 (2 rows)
 
-SELECT * FROM test_array WHERE i <%%> '{}';
+SELECT * FROM test_array WHERE i % '{}';
  i 
 ---
 (0 rows)
 
-SELECT * FROM test_array WHERE i <%%> '{1}';
+SELECT * FROM test_array WHERE i % '{1}';
      i     
 -----------
  {1,2,3,4}
@@ -365,7 +365,7 @@ SELECT * FROM test_array WHERE i <%%> '{1}';
  {1}
 (4 rows)
 
-SELECT * FROM test_array WHERE i <%%> '{2}';
+SELECT * FROM test_array WHERE i % '{2}';
      i     
 -----------
  {1,2,3,4}
@@ -373,7 +373,7 @@ SELECT * FROM test_array WHERE i <%%> '{2}';
  {1,2}
 (3 rows)
 
-SELECT * FROM test_array WHERE i <%%> '{1,2}';
+SELECT * FROM test_array WHERE i % '{1,2}';
      i     
 -----------
  {1,2,3,4}
@@ -382,7 +382,7 @@ SELECT * FROM test_array WHERE i <%%> '{1,2}';
  {1}
 (4 rows)
 
-SELECT * FROM test_array WHERE i <%%> '{1,2,4}';
+SELECT * FROM test_array WHERE i % '{1,2,4}';
      i     
 -----------
  {1,2,3,4}
@@ -391,7 +391,7 @@ SELECT * FROM test_array WHERE i <%%> '{1,2,4}';
  {1}
 (4 rows)
 
-SELECT * FROM test_array WHERE i <%%> '{1,2,3,4}';
+SELECT * FROM test_array WHERE i % '{1,2,3,4}';
      i     
 -----------
  {1,2,3,4}
@@ -400,7 +400,7 @@ SELECT * FROM test_array WHERE i <%%> '{1,2,3,4}';
  {1}
 (4 rows)
 
-SELECT * FROM test_array WHERE i <%%> '{4,3,2,1}';
+SELECT * FROM test_array WHERE i % '{4,3,2,1}';
      i     
 -----------
  {1,2,3,4}
@@ -409,7 +409,7 @@ SELECT * FROM test_array WHERE i <%%> '{4,3,2,1}';
  {1}
 (4 rows)
 
-SELECT * FROM test_array WHERE i <%%> '{1,2,3,4,5}';
+SELECT * FROM test_array WHERE i % '{1,2,3,4,5}';
      i     
 -----------
  {1,2,3,4}
@@ -417,24 +417,24 @@ SELECT * FROM test_array WHERE i <%%> '{1,2,3,4,5}';
  {1,2}
 (3 rows)
 
-SELECT * FROM test_array WHERE i <%%> '{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}';
+SELECT * FROM test_array WHERE i % '{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}';
      i     
 -----------
  {1,2,3,4}
 (1 row)
 
-SELECT * FROM test_array WHERE i <%%> '{1,10,20,30,40,50}';
+SELECT * FROM test_array WHERE i % '{1,10,20,30,40,50}';
  i 
 ---
 (0 rows)
 
-SELECT * FROM test_array WHERE i <%%> '{1,10,20,30}';
+SELECT * FROM test_array WHERE i % '{1,10,20,30}';
   i  
 -----
  {1}
 (1 row)
 
-SELECT * FROM test_array WHERE i <%%> '{1,1,1,1,1}';
+SELECT * FROM test_array WHERE i % '{1,1,1,1,1}';
      i     
 -----------
  {1,2,3,4}
@@ -443,26 +443,26 @@ SELECT * FROM test_array WHERE i <%%> '{1,1,1,1,1}';
  {1}
 (4 rows)
 
-SELECT * FROM test_array WHERE i <%%> '{0,0}';
+SELECT * FROM test_array WHERE i % '{0,0}';
   i  
 -----
  {0}
 (1 row)
 
-SELECT * FROM test_array WHERE i <%%> '{100}';
+SELECT * FROM test_array WHERE i % '{100}';
  i 
 ---
 (0 rows)
 
-EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i && '{1}' ORDER BY i <==> '{1}' ASC;
+EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i && '{1}' ORDER BY i <=> '{1}' ASC;
                 QUERY PLAN                
 ------------------------------------------
  Index Scan using idx_array on test_array
    Index Cond: (i && '{1}'::smallint[])
-   Order By: (i <==> '{1}'::smallint[])
+   Order By: (i <=> '{1}'::smallint[])
 (3 rows)
 
-SELECT * FROM test_array WHERE i && '{1}' ORDER BY i <==> '{1}' ASC;
+SELECT * FROM test_array WHERE i && '{1}' ORDER BY i <=> '{1}' ASC;
      i     
 -----------
  {1}
@@ -510,23 +510,23 @@ EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <@ '{}';
    Index Cond: (i <@ '{}'::smallint[])
 (2 rows)
 
-EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <%%> '{}';
-             QUERY PLAN             
-------------------------------------
+EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i % '{}';
+            QUERY PLAN            
+----------------------------------
  Seq Scan on test_array
-   Filter: (i <%%> '{}'::smallint[])
+   Filter: (i % '{}'::smallint[])
 (2 rows)
 
-EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i && '{1}' ORDER BY add_info <==> '2016-05-16 14:21:25' LIMIT 10;
+EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i && '{1}' ORDER BY add_info <=> '2016-05-16 14:21:25' LIMIT 10;
                                         QUERY PLAN                                        
 ------------------------------------------------------------------------------------------
  Limit
    ->  Index Scan using idx_array on test_array
          Index Cond: (i && '{1}'::smallint[])
-         Order By: (add_info <==> 'Mon May 16 14:21:25 2016'::timestamp without time zone)
+         Order By: (add_info <=> 'Mon May 16 14:21:25 2016'::timestamp without time zone)
 (4 rows)
 
-SELECT * FROM test_array WHERE i && '{1}' ORDER BY add_info <==> '2016-05-16 14:21:25' LIMIT 10;
+SELECT * FROM test_array WHERE i && '{1}' ORDER BY add_info <=> '2016-05-16 14:21:25' LIMIT 10;
      i     |         add_info         
 -----------+--------------------------
  {1}       | Thu May 19 14:21:25 2016
@@ -569,11 +569,11 @@ EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <@ '{}';
    Index Cond: (i <@ '{}'::integer[])
 (2 rows)
 
-EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <%%> '{}';
+EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i % '{}';
                 QUERY PLAN                
 ------------------------------------------
  Index Scan using idx_array on test_array
-   Index Cond: (i <%%> '{}'::integer[])
+   Index Cond: (i % '{}'::integer[])
 (2 rows)
 
 DROP INDEX idx_array;
@@ -607,11 +607,11 @@ EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <@ '{}';
    Index Cond: (i <@ '{}'::bigint[])
 (2 rows)
 
-EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <%%> '{}';
+EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i % '{}';
                 QUERY PLAN                
 ------------------------------------------
  Index Scan using idx_array on test_array
-   Index Cond: (i <%%> '{}'::bigint[])
+   Index Cond: (i % '{}'::bigint[])
 (2 rows)
 
 DROP INDEX idx_array;
@@ -645,11 +645,11 @@ EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <@ '{}';
    Index Cond: (i <@ '{}'::text[])
 (2 rows)
 
-EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <%%> '{}';
+EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i % '{}';
                 QUERY PLAN                
 ------------------------------------------
  Index Scan using idx_array on test_array
-   Index Cond: (i <%%> '{}'::text[])
+   Index Cond: (i % '{}'::text[])
 (2 rows)
 
 DROP INDEX idx_array;
@@ -683,11 +683,11 @@ EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <@ '{}';
    Index Cond: (i <@ '{}'::character varying[])
 (2 rows)
 
-EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <%%> '{}';
-                   QUERY PLAN                    
--------------------------------------------------
+EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i % '{}';
+                  QUERY PLAN                   
+-----------------------------------------------
  Index Scan using idx_array on test_array
-   Index Cond: (i <%%> '{}'::character varying[])
+   Index Cond: (i % '{}'::character varying[])
 (2 rows)
 
 DROP INDEX idx_array;
@@ -721,11 +721,11 @@ EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <@ '{}';
    Index Cond: (i <@ '{}'::bpchar[])
 (2 rows)
 
-EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <%%> '{}';
+EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i % '{}';
                 QUERY PLAN                
 ------------------------------------------
  Index Scan using idx_array on test_array
-   Index Cond: (i <%%> '{}'::bpchar[])
+   Index Cond: (i % '{}'::bpchar[])
 (2 rows)
 
 DROP INDEX idx_array;
@@ -759,11 +759,11 @@ EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <@ '{}';
    Index Cond: (i <@ '{}'::numeric[])
 (2 rows)
 
-EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <%%> '{}';
+EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i % '{}';
                 QUERY PLAN                
 ------------------------------------------
  Index Scan using idx_array on test_array
-   Index Cond: (i <%%> '{}'::numeric[])
+   Index Cond: (i % '{}'::numeric[])
 (2 rows)
 
 DROP INDEX idx_array;
@@ -797,11 +797,11 @@ EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <@ '{}';
    Index Cond: (i <@ '{}'::real[])
 (2 rows)
 
-EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <%%> '{}';
+EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i % '{}';
                 QUERY PLAN                
 ------------------------------------------
  Index Scan using idx_array on test_array
-   Index Cond: (i <%%> '{}'::real[])
+   Index Cond: (i % '{}'::real[])
 (2 rows)
 
 DROP INDEX idx_array;
@@ -835,11 +835,11 @@ EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <@ '{}';
    Index Cond: (i <@ '{}'::double precision[])
 (2 rows)
 
-EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i <%%> '{}';
-                   QUERY PLAN                   
-------------------------------------------------
+EXPLAIN (COSTS OFF) SELECT * FROM test_array WHERE i % '{}';
+                  QUERY PLAN                  
+----------------------------------------------
  Index Scan using idx_array on test_array
-   Index Cond: (i <%%> '{}'::double precision[])
+   Index Cond: (i % '{}'::double precision[])
 (2 rows)
 
 DROP INDEX idx_array;
@@ -852,12 +852,12 @@ CREATE TABLE test_array_order (
 \copy test_array_order(i) from 'data/rum_array.data';
 CREATE INDEX idx_array_order ON test_array_order USING rum (i aa_rum_anyarray_ops);
 EXPLAIN (COSTS OFF)
-SELECT *, i <==> '{51}' from test_array_order WHERE i @> '{23,20}' order by i <==> '{51}';
+SELECT *, i <=> '{51}' from test_array_order WHERE i @> '{23,20}' order by i <=> '{51}';
                       QUERY PLAN                      
 ------------------------------------------------------
  Index Scan using idx_array_order on test_array_order
    Index Cond: (i @> '{23,20}'::smallint[])
-   Order By: (i <==> '{51}'::smallint[])
+   Order By: (i <=> '{51}'::smallint[])
 (3 rows)
 
 SELECT i,
@@ -865,8 +865,8 @@ SELECT i,
 		ELSE distance::numeric(18,14)
 	END distance
 	FROM
-		(SELECT *, (i <==> '{51}') AS distance
-		FROM test_array_order WHERE i @> '{23,20}' ORDER BY i <==> '{51}') t;
+		(SELECT *, (i <=> '{51}') AS distance
+		FROM test_array_order WHERE i @> '{23,20}' ORDER BY i <=> '{51}') t;
           i          |     distance     
 ---------------------+------------------
  {20,23,51}          | 1.73205080756888

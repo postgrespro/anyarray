@@ -95,6 +95,7 @@ extern void sortSimpleArray(SimpleArray *s, int32 direction);
 extern void uniqSimpleArray(SimpleArray *s, bool onlyDuplicate);
 extern void hashSimpleArray(SimpleArray *s);
 extern double getSimilarity(SimpleArray *sa, SimpleArray *sb);
-
+extern double getSimilarityValue(int32 nelemsa, int32 nelemsb, int32 intersection);
+extern int numOfIntersect(SimpleArray *a, SimpleArray *b);
 #endif
 

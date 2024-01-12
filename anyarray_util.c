@@ -369,7 +369,7 @@ hashSimpleArray(SimpleArray* query)
 	query->nHashedElems = uniqueint(query->hashedElems, query->nelems);
 }
 
-static int
+int
 numOfIntersect(SimpleArray *a, SimpleArray *b)
 {
 	int					cnt = 0,
@@ -411,17 +411,25 @@ getSimilarity(SimpleArray *sa, SimpleArray *sb)
 	double		result = 0.0;
 
 	inter = numOfIntersect(sa, sb);
+	result = getSimilarityValue(sa->nelems,sb->nelems,inter);
+	return result;
+}
+
+double 
+getSimilarityValue(int32 nelemsa, int32 nelemsb, int32 intersection)
+{
+	double		result = 0.0;
 
 	switch(SmlType)
 	{
 		case AA_Cosine:
-			result = ((double)inter) / sqrt(((double)sa->nelems) * ((double)sb->nelems));
+			result = ((double)intersection) / sqrt(((double)nelemsa) * ((double)nelemsb));
 			break;
 		case AA_Jaccard:
-			result = ((double)inter) / (((double)sa->nelems) + ((double)sb->nelems) - ((double)inter));
+			result = ((double)intersection) / (((double)nelemsa) + ((double)nelemsb) - ((double)intersection));
 			break;
 		case AA_Overlap:
-			result = inter;
+			result = intersection;
 			break;
 		default:
 			elog(ERROR, "unknown similarity type");
@@ -429,4 +437,3 @@ getSimilarity(SimpleArray *sa, SimpleArray *sb)
 
 	return result;
 }
-
