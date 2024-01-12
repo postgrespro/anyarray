@@ -1487,4 +1487,54 @@ AS
         FUNCTION        7       rumanyarray_preconsistent(internal,smallint,anyarray,integer,internal,internal,internal,internal),
         FUNCTION        8       rumanyarray_ordering(internal,smallint,anyarray,int,internal,internal,internal,internal,internal),
         STORAGE varchar;
-		
+
+CREATE OPERATOR CLASS _uuid_aa_ops
+FOR TYPE _uuid USING gist
+AS
+	OPERATOR	3	&&	(anyarray, anyarray),
+	OPERATOR	6	=	(anyarray, anyarray),
+	OPERATOR	7	@>	(anyarray, anyarray),
+	OPERATOR	8	<@	(anyarray, anyarray),
+	OPERATOR	16	%	(anyarray, anyarray),
+	FUNCTION	1	ganyarray_consistent(internal,internal,int,oid,internal),
+	FUNCTION	2	ganyarray_union (bytea, internal),
+	FUNCTION	3	ganyarray_compress (internal),
+	FUNCTION	4	ganyarray_decompress (internal),
+	FUNCTION	5	ganyarray_penalty (internal, internal, internal),
+	FUNCTION	6	ganyarray_picksplit (internal, internal),
+	FUNCTION	7	ganyarray_same (ganyarray, ganyarray, internal),
+STORAGE         ganyarray;
+
+CREATE OPERATOR CLASS _uuid_aa_ops
+FOR TYPE _uuid  USING gin
+AS
+    OPERATOR	3	&&	(anyarray, anyarray),
+	OPERATOR	6	=	(anyarray, anyarray),
+	OPERATOR	7	@>	(anyarray, anyarray),
+	OPERATOR	8	<@	(anyarray, anyarray),
+	OPERATOR	16	%	(anyarray, anyarray),
+	FUNCTION    1   uuid_cmp(uuid,uuid),
+	FUNCTION    2   ginanyarray_extract(anyarray, internal),
+	FUNCTION    3   ginanyarray_queryextract(anyarray, internal, internal),
+	FUNCTION    4   ginanyarray_consistent(internal, internal, anyarray),
+	FUNCTION    6   ginanyarray_triconsistent(internal, internal, anyarray,internal,internal,internal,internal,internal),
+	STORAGE     uuid;
+
+CREATE OPERATOR CLASS _uuid_aa_ops
+FOR TYPE _uuid  USING rum
+AS
+        OPERATOR        1       &&  (anyarray, anyarray),
+        OPERATOR        2       @>  (anyarray, anyarray),
+        OPERATOR        3       <@  (anyarray, anyarray),
+        OPERATOR        4       =   (anyarray, anyarray),
+        OPERATOR        5       %   (anyarray, anyarray),
+        OPERATOR        20      <=> (anyarray, anyarray) FOR ORDER BY pg_catalog.float_ops,
+        --dispatch function 1 for concrete type
+        FUNCTION    	1   	uuid_cmp(uuid,uuid),
+        FUNCTION        2       rumextract_anyarray(anyarray,internal,internal,internal,internal),
+        FUNCTION        3       rumextract_anyarray_query(anyarray,internal,smallint,internal,internal,internal,internal),
+        FUNCTION        4       rumanyarray_consistent(internal,smallint,anyarray,integer,internal,internal,internal,internal),
+        FUNCTION        6       rumanyarray_config(internal),
+        FUNCTION        7       rumanyarray_preconsistent(internal,smallint,anyarray,integer,internal,internal,internal,internal),
+        FUNCTION        8       rumanyarray_ordering(internal,smallint,anyarray,int,internal,internal,internal,internal,internal),
+        STORAGE uuid;

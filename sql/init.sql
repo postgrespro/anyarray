@@ -115,6 +115,16 @@ RETURNS _macaddr AS $$
 	);
 	$$ LANGUAGE SQL RETURNS NULL ON NULL INPUT IMMUTABLE;
 
+CREATE OR REPLACE FUNCTION to_uuid_array(_int8)
+RETURNS _uuid AS $$
+	SELECT ARRAY( 
+		SELECT 
+			('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a' || RIGHT('00' || to_hex($1[n] % 256),2))::uuid	
+		FROM
+			generate_series( 1, array_upper( $1, 1) - array_lower( $1, 1 ) + 1 ) AS n
+	);
+	$$ LANGUAGE SQL RETURNS NULL ON NULL INPUT IMMUTABLE;
+
 CREATE OR REPLACE FUNCTION to_inetp_array(_int8)
 RETURNS _inet AS $$
 	SELECT ARRAY( 

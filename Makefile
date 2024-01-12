@@ -13,7 +13,7 @@ REGRESS = security init anyarray \
 	text varchar char varbit bit bytea \
 	interval money oid \
 	timestamp timestamptz time timetz date \
-	macaddr inet cidr anyarrayrum
+	macaddr inet cidr anyarrayrum uuid
 
 ifdef USE_PGXS
 PG_CONFIG = pg_config

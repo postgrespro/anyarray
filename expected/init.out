@@ -38,8 +38,9 @@ ORDER BY opc.opcname;
  _timestamp_aa_ops   | _timestamp   | f
  _timestamptz_aa_ops | _timestamptz | f
  _timetz_aa_ops      | _timetz      | f
+ _uuid_aa_ops        | _uuid        | f
  _varchar_aa_ops     | _varchar     | f
-(20 rows)
+(21 rows)
 
 SELECT 
 	opc.opcname, 
@@ -78,9 +79,10 @@ ORDER BY opc.opcname;
  _timestamp_aa_ops   | _timestamp   | f
  _timestamptz_aa_ops | _timestamptz | f
  _timetz_aa_ops      | _timetz      | f
+ _uuid_aa_ops        | _uuid        | f
  _varbit_aa_ops      | _varbit      | f
  _varchar_aa_ops     | _varchar     | f
-(23 rows)
+(24 rows)
 
 SELECT
 	am.amname,
@@ -206,6 +208,11 @@ ORDER BY
  gin    | _timetz_aa_ops      | <@      |           5
  gin    | _timetz_aa_ops      | =       |           5
  gin    | _timetz_aa_ops      | @>      |           5
+ gin    | _uuid_aa_ops        | %       |           5
+ gin    | _uuid_aa_ops        | &&      |           5
+ gin    | _uuid_aa_ops        | <@      |           5
+ gin    | _uuid_aa_ops        | =       |           5
+ gin    | _uuid_aa_ops        | @>      |           5
  gin    | _varbit_aa_ops      | %       |           5
  gin    | _varbit_aa_ops      | &&      |           5
  gin    | _varbit_aa_ops      | <@      |           5
@@ -311,6 +318,11 @@ ORDER BY
  gist   | _timetz_aa_ops      | <@      |           5
  gist   | _timetz_aa_ops      | =       |           5
  gist   | _timetz_aa_ops      | @>      |           5
+ gist   | _uuid_aa_ops        | %       |           5
+ gist   | _uuid_aa_ops        | &&      |           5
+ gist   | _uuid_aa_ops        | <@      |           5
+ gist   | _uuid_aa_ops        | =       |           5
+ gist   | _uuid_aa_ops        | @>      |           5
  gist   | _varchar_aa_ops     | %       |           5
  gist   | _varchar_aa_ops     | &&      |           5
  gist   | _varchar_aa_ops     | <@      |           5
@@ -442,6 +454,12 @@ ORDER BY
  rum    | _timetz_aa_ops      | <@      |           6
  rum    | _timetz_aa_ops      | =       |           6
  rum    | _timetz_aa_ops      | @>      |           6
+ rum    | _uuid_aa_ops        | %       |           6
+ rum    | _uuid_aa_ops        | &&      |           6
+ rum    | _uuid_aa_ops        | <=>     |           6
+ rum    | _uuid_aa_ops        | <@      |           6
+ rum    | _uuid_aa_ops        | =       |           6
+ rum    | _uuid_aa_ops        | @>      |           6
  rum    | _varbit_aa_ops      | %       |           6
  rum    | _varbit_aa_ops      | &&      |           6
  rum    | _varbit_aa_ops      | <=>     |           6
@@ -454,7 +472,7 @@ ORDER BY
  rum    | _varchar_aa_ops     | <@      |           6
  rum    | _varchar_aa_ops     | =       |           6
  rum    | _varchar_aa_ops     | @>      |           6
-(353 rows)
+(369 rows)
 
 SELECT 
     trim( leading '_'  from t.typname ) || '[]' AS "Array Type",
@@ -516,9 +534,10 @@ ORDER BY
  timestamp[]   | _timestamp_aa_ops   | _timestamp_aa_ops
  timestamptz[] | _timestamptz_aa_ops | _timestamptz_aa_ops
  timetz[]      | _timetz_aa_ops      | _timetz_aa_ops
+ uuid[]        | _uuid_aa_ops        | _uuid_aa_ops
  varbit[]      | _varbit_aa_ops      | 
  varchar[]     | _varchar_aa_ops     | _varchar_aa_ops
-(23 rows)
+(24 rows)
 
 --testing function
 CREATE OR REPLACE FUNCTION epoch2timestamp(int8)
@@ -539,6 +558,15 @@ RETURNS _macaddr AS $$
 	SELECT ARRAY( 
 		SELECT 
 			('01:01:01:01:01:' || to_hex($1[n] % 256))::macaddr	
+		FROM
+			generate_series( 1, array_upper( $1, 1) - array_lower( $1, 1 ) + 1 ) AS n
+	);
+	$$ LANGUAGE SQL RETURNS NULL ON NULL INPUT IMMUTABLE;
+CREATE OR REPLACE FUNCTION to_uuid_array(_int8)
+RETURNS _uuid AS $$
+	SELECT ARRAY( 
+		SELECT 
+			('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a' || RIGHT('00' || to_hex($1[n] % 256),2))::uuid	
 		FROM
 			generate_series( 1, array_upper( $1, 1) - array_lower( $1, 1 ) + 1 ) AS n
 	);
