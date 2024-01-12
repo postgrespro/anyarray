@@ -76,7 +76,7 @@ Usage
 
 
 |Operator|GIST and GIN Strategy num|RUM Strategy num|Description|
-|--------|-------------------------|-----------|
+|--------|-------------------------|----------------|-----------|
 |`anyarray` && `anyarray`|RTOverlapStrategyNumber 3|RUM_OVERLAP_STRATEGY 1|Overlapped|
 |`anyarray` = `anyarray`|RTSameStrategyNumber 6|RUM_EQUAL_STRATEGY 4|Same|
 |`anyarray` @> `anyarray`|RTContainsStrategyNumber 7|RUM_CONTAINS_STRATEGY 2|Contains|
