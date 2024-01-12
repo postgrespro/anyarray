@@ -94,13 +94,13 @@ SET anyarray.similarity_type=jaccard;
 SET anyarray.similarity_type=overlap;
 ```
 
-Set threshold for similarity search. Default value is 0.6 . RESET value is 0.0 . anyarray.similarity_threshold accept values from 0.0 to 1e10 .
+Set threshold for similarity search. Default value is 0.6 . RESET value is 0.0 . `anyarray.similarity_threshold` accept values from 0.0 to 1e10 .
 ```
 SET anyarray.similarity_threshold = 3;
 RESET anyarray.similarity_threshold;
 ```
 
-RUM version 1.2 and 1.3 used variables rum.array_similarity_function and rum.array_similarity_threshold that are obsolete and replaced by anyarray.similarity_type and anyarray.similarity_threshold.
+RUM version 1.2 and 1.3 used variables `rum.array_similarity_function` and `rum.array_similarity_threshold` that are obsolete and replaced by `anyarray.similarity_type` and `anyarray.similarity_threshold`.
 
 Examples
 -------
@@ -108,10 +108,10 @@ Examples
 Examples for INTEGER[] .
 
 ### Create a table with sample data.
-```
+```SQL
 SELECT t, ARRAY(
 		SELECT v::int4
-		FROM generate_series(max(0, t - 10),  t) as v
+		FROM generate_series(GREATEST(0, t - 10),  t) as v
 	) AS v
 	INTO test_int4
 FROM generate_series(1, 200) as t;
@@ -119,7 +119,7 @@ FROM generate_series(1, 200) as t;
 
 ### Similarity calculation.
 
-```
+```SQL
 SET anyarray.similarity_type=cosine;
 SELECT  t, similarity(v, '{10,9,8,7,6,5,4,3,2,1}') AS s FROM test_int4 
 	WHERE v % '{10,9,8,7,6,5,4,3,2,1}' ORDER BY s DESC, t;
@@ -148,7 +148,7 @@ RESET anyarray.similarity_threshold;
 
 ### Create GIST index.
 
-```
+```SQL
 CREATE INDEX idx_test_int4 ON test_int4 USING gist (v _int4_aa_ops);
 
 SET enable_seqscan=off;
@@ -177,7 +177,7 @@ DROP INDEX idx_test_int4;
 
 ### Create GIN index.
 
-```
+```SQL
 CREATE INDEX idx_test_int4 ON test_int4 USING gin (v _int4_aa_ops);
 
 SET enable_seqscan=off;
@@ -204,7 +204,7 @@ RESET anyarray.similarity_threshold;
 
 ### Create RUM index.
 
-```
+```SQL
 CREATE INDEX idx_test_int4 ON test_int4 USING rum (v _int4_aa_ops);
 
 SET enable_seqscan=off;
@@ -263,7 +263,7 @@ Operator class names for all types implemented in anyarray.
 
 Install the latest version and run in every database you want to upgrade:
 
-```
+```SQL
 ALTER EXTENSION anyarray UPDATE;
 ```
 You need to close this database server connection to apply changes.
