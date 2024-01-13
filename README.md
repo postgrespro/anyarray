@@ -153,12 +153,6 @@ CREATE INDEX idx_test_int4 ON test_int4 USING gist (v _int4_aa_ops);
 
 SET enable_seqscan=off;
 
-EXPLAIN (COSTS OFF) SELECT t, v FROM test_int4 WHERE v && '{43,50}' ORDER BY t;
-EXPLAIN (COSTS OFF) SELECT t, v FROM test_int4 WHERE v @> '{43,50}' ORDER BY t;
-EXPLAIN (COSTS OFF) SELECT t, v FROM test_int4 WHERE v <@ '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
-EXPLAIN (COSTS OFF) SELECT t, v FROM test_int4 WHERE v =  '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
-EXPLAIN (COSTS OFF) SELECT t, v FROM test_int4 WHERE v %  '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
-
 SELECT t, v FROM test_int4 WHERE v && '{43,50}' ORDER BY t;
 SELECT t, v FROM test_int4 WHERE v @> '{43,50}' ORDER BY t;
 SELECT t, v FROM test_int4 WHERE v <@ '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
@@ -182,12 +176,6 @@ CREATE INDEX idx_test_int4 ON test_int4 USING gin (v _int4_aa_ops);
 
 SET enable_seqscan=off;
 
-EXPLAIN (COSTS OFF) SELECT t, v FROM test_int4 WHERE v && '{43,50}' ORDER BY t;
-EXPLAIN (COSTS OFF) SELECT t, v FROM test_int4 WHERE v @> '{43,50}' ORDER BY t;
-EXPLAIN (COSTS OFF) SELECT t, v FROM test_int4 WHERE v <@ '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
-EXPLAIN (COSTS OFF) SELECT t, v FROM test_int4 WHERE v =  '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
-EXPLAIN (COSTS OFF) SELECT t, v FROM test_int4 WHERE v %  '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
-
 SELECT t, v FROM test_int4 WHERE v && '{43,50}' ORDER BY t;
 SELECT t, v FROM test_int4 WHERE v @> '{43,50}' ORDER BY t;
 SELECT t, v FROM test_int4 WHERE v <@ '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
@@ -208,12 +196,6 @@ RESET anyarray.similarity_threshold;
 CREATE INDEX idx_test_int4 ON test_int4 USING rum (v _int4_aa_ops);
 
 SET enable_seqscan=off;
-
-EXPLAIN (COSTS OFF) SELECT t, v FROM test_int4 WHERE v && '{43,50}' ORDER BY t;
-EXPLAIN (COSTS OFF) SELECT t, v FROM test_int4 WHERE v @> '{43,50}' ORDER BY t;
-EXPLAIN (COSTS OFF) SELECT t, v FROM test_int4 WHERE v <@ '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
-EXPLAIN (COSTS OFF) SELECT t, v FROM test_int4 WHERE v =  '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
-EXPLAIN (COSTS OFF) SELECT t, v FROM test_int4 WHERE v %  '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
 
 SELECT t, v FROM test_int4 WHERE v && '{43,50}' ORDER BY t;
 SELECT t, v FROM test_int4 WHERE v @> '{43,50}' ORDER BY t;
@@ -271,12 +253,6 @@ CREATE INDEX idx_test_int4 ON test_int4 USING rum (v aa_rum_anyarray_ops);
 
 SET enable_seqscan=off;
 
-EXPLAIN (COSTS OFF) SELECT t, v FROM test_int4 WHERE v && '{43,50}' ORDER BY t;
-EXPLAIN (COSTS OFF) SELECT t, v FROM test_int4 WHERE v @> '{43,50}' ORDER BY t;
-EXPLAIN (COSTS OFF) SELECT t, v FROM test_int4 WHERE v <@ '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
-EXPLAIN (COSTS OFF) SELECT t, v FROM test_int4 WHERE v =  '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
-EXPLAIN (COSTS OFF) SELECT t, v FROM test_int4 WHERE v %  '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
-
 SELECT t, v FROM test_int4 WHERE v && '{43,50}' ORDER BY t;
 SELECT t, v FROM test_int4 WHERE v @> '{43,50}' ORDER BY t;
 SELECT t, v FROM test_int4 WHERE v <@ '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
@@ -304,12 +280,14 @@ WITH q as (
      SELECT row_number() OVER (ORDER BY i) idx, ctid FROM test_array
 )
 UPDATE test_array SET add_info = '2016-05-16 14:21:25'::timestamp +
-								 format('%s days', q.idx)::interval
+	 format('%s days', q.idx)::interval
 FROM q WHERE test_array.ctid = q.ctid;
 
 CREATE INDEX idx_array ON test_array
 USING rum (i aa_rum_anyarray_addon_ops, add_info)
 WITH (attach = 'add_info', to = 'i');
+
+SET enable_seqscan=off;
 
 SELECT * FROM test_array WHERE i && '{1}' ORDER BY add_info <=> '2016-05-16 14:21:25' LIMIT 10;
 ```
