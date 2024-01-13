@@ -6,6 +6,7 @@ __pycache__
 *.pyc
 tmp_install
 log
+.vscode
 
 # virtualenv
 bin
