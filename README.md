@@ -259,6 +259,61 @@ Operator class names for all types implemented in anyarray.
 |varbit|_varbit_aa_ops|_varbit_aa_ops|_varbit_aa_ops|
 |varchar|_varchar_aa_ops|_varchar_aa_ops|_varchar_aa_ops|
 
+Operator class names implemented for back compatibility with RUM versions 1.2 and 1.3
+-----------------------------------------------------------
+
+All anyarray support moved from RUM extension to AnyArray extension since RUM version 1.4 . Operator class names `aa_rum_anyarray_ops` and `aa_rum_anyarray_addon_ops` are implemented in AnyArray. 
+
+### aa_rum_anyarray_ops example
+
+```SQL
+CREATE INDEX idx_test_int4 ON test_int4 USING rum (v aa_rum_anyarray_ops);
+
+SET enable_seqscan=off;
+
+EXPLAIN (COSTS OFF) SELECT t, v FROM test_int4 WHERE v && '{43,50}' ORDER BY t;
+EXPLAIN (COSTS OFF) SELECT t, v FROM test_int4 WHERE v @> '{43,50}' ORDER BY t;
+EXPLAIN (COSTS OFF) SELECT t, v FROM test_int4 WHERE v <@ '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
+EXPLAIN (COSTS OFF) SELECT t, v FROM test_int4 WHERE v =  '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
+EXPLAIN (COSTS OFF) SELECT t, v FROM test_int4 WHERE v %  '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
+
+SELECT t, v FROM test_int4 WHERE v && '{43,50}' ORDER BY t;
+SELECT t, v FROM test_int4 WHERE v @> '{43,50}' ORDER BY t;
+SELECT t, v FROM test_int4 WHERE v <@ '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
+SELECT t, v FROM test_int4 WHERE v =  '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
+SET anyarray.similarity_type=cosine;
+SELECT t, v FROM test_int4 WHERE v %  '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
+SET anyarray.similarity_type=jaccard;
+SELECT t, v FROM test_int4 WHERE v %  '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
+SET anyarray.similarity_type=overlap;
+SET anyarray.similarity_threshold = 3;
+SELECT t, v FROM test_int4 WHERE v %  '{0,1,2,3,4,5,6,7,8,9,10}' ORDER BY t;
+RESET anyarray.similarity_threshold;
+```
+
+### aa_rum_anyarray_addon_ops example
+
+```SQL
+CREATE TABLE test_array (
+	i int2[]
+);
+INSERT INTO test_array VALUES ('{}'), ('{0}'), ('{1,2,3,4}'), ('{1,2,3}'), ('{1,2}'), ('{1}');
+ALTER TABLE test_array ADD COLUMN add_info timestamp;
+
+WITH q as (
+     SELECT row_number() OVER (ORDER BY i) idx, ctid FROM test_array
+)
+UPDATE test_array SET add_info = '2016-05-16 14:21:25'::timestamp +
+								 format('%s days', q.idx)::interval
+FROM q WHERE test_array.ctid = q.ctid;
+
+CREATE INDEX idx_array ON test_array
+USING rum (i aa_rum_anyarray_addon_ops, add_info)
+WITH (attach = 'add_info', to = 'i');
+
+SELECT * FROM test_array WHERE i && '{1}' ORDER BY add_info <=> '2016-05-16 14:21:25' LIMIT 10;
+```
+
 ## Upgrading
 
 Install the latest version and run in every database you want to upgrade:
