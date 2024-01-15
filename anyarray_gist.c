@@ -22,8 +22,11 @@
 #include "anyarray.h"
 #include "access/gist.h"
 #include "access/skey.h"
+#if PG_VERSION_NUM >= 130000
 #include "access/heaptoast.h"
-
+#else
+#include "access/tuptoaster.h"
+#endif
 PG_FUNCTION_INFO_V1(ganyarrayin);
 PG_FUNCTION_INFO_V1(ganyarrayout);
 PG_FUNCTION_INFO_V1(ganyarray_consistent);

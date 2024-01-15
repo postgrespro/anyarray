@@ -16,6 +16,27 @@
 #include <math.h>
 #if PG_VERSION_NUM >= 120000
 #include "utils/float.h"
+#else
+static inline float8
+get_float8_infinity(void)
+{
+#ifdef INFINITY
+	/* C99 standard way */
+	return (float8) INFINITY;
+#else
+
+	/*
+	 * On some platforms, HUGE_VAL is an infinity, elsewhere it's just the
+	 * largest normal float8.  We assume forcing an overflow will get us a
+	 * true infinity.
+	 */
+	return (float8) (HUGE_VAL * HUGE_VAL);
+#endif
+}
+#endif
+#if PG_VERSION_NUM < 130000
+/* definition of INT4OID in early PG versions */
+#include "catalog/pg_type.h"
 #endif
 
 #include "anyarray.h"

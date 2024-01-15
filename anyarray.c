@@ -21,8 +21,9 @@
 
 #include <catalog/pg_collation.h>
 #include <utils/builtins.h>
+#if PG_VERSION_NUM >= 120000
 #include <utils/float.h>
-
+#endif
 
 #define	CMP(a, b, cmpFunc) \
 	DatumGetInt32(FunctionCall2Coll((cmpFunc), DEFAULT_COLLATION_OID, (a), (b)))

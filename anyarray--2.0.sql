@@ -85,6 +85,27 @@ CREATE OPERATOR - (
 	PROCEDURE = array_remove
 );
 
+/* PG 13 and lower */
+/*
+CREATE OPERATOR + (
+	LEFTARG = anyarray,
+	RIGHTARG = anyelement,
+	PROCEDURE = array_append
+);
+
+CREATE OPERATOR + (
+	LEFTARG = anyarray,
+	RIGHTARG = anyarray,
+	PROCEDURE = array_cat
+);
+
+CREATE OPERATOR - (
+	LEFTARG = anyarray,
+	RIGHTARG = anyelement,
+	PROCEDURE = array_remove
+);
+*/
+
 CREATE FUNCTION subtract_array(anyarray, anyarray)
 	RETURNS anyarray
 	AS 'MODULE_PATHNAME', 'aa_subtract_array'

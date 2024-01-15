@@ -32,6 +32,10 @@
 
 PG_MODULE_MAGIC;
 
+#if PG_VERSION_NUM < 110000
+#define HASHSTANDARD_PROC HASHPROC
+#endif
+
 static Oid
 getAMProc(Oid amOid, Oid typid)
 {
@@ -54,9 +58,14 @@ getAMProc(Oid amOid, Oid typid)
 			/*
 			 * Search binary-coercible type
 			 */
+#if PG_VERSION_NUM >= 110000			
 			catlist = SearchSysCacheList(CASTSOURCETARGET, 
 										 ObjectIdGetDatum(typid),
 										 0, 0, 0);
+#else 
+			catlist = SearchSysCacheList1(CASTSOURCETARGET, 
+										 ObjectIdGetDatum(typid));
+#endif
 			for (i = 0; i < catlist->n_members; i++)
 			{
 				HeapTuple		tuple = &catlist->members[i]->tuple;
