@@ -69,13 +69,13 @@ typedef struct SimpleArray
 	} while(0)
 
 
-typedef enum SimilarityType {
+typedef enum SimilarityKind {
 	AA_Cosine,
 	AA_Jaccard,
 	AA_Overlap
-} SimilarityType;
+} SimilarityKind;
 
-extern SimilarityType SmlType;
+extern SimilarityKind SmlType;
 extern double SmlLimit;
 
 #define AnyAarraySimilarityStrategy	(16)

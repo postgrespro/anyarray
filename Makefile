@@ -5,7 +5,7 @@ OBJS = anyarray.o anyarray_util.o anyarray_guc.o \
 		anyarray_gist.o anyarray_gin.o anyarray_rum.o
 
 EXTENSION = anyarray
-DATA = anyarray--1.0.sql anyarray--1.1.sql anyarray--1.0--1.1.sql anyarray--1.1.sql anyarray--1.1--2.0.sql anyarray--2.0.sql
+DATA = anyarray--1.0.sql anyarray--2.0.sql anyarray--1.0--2.0.sql 
 PGFILEDESC = "anyarray - functions and operators for one-dimensional arrays"
 
 REGRESS = security init anyarray \

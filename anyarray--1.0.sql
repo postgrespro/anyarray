@@ -556,17 +556,17 @@ AS
 STORAGE         ganyarray;
 
 --gin support functions
-CREATE OR REPLACE FUNCTION ginanyarray_extract(anyarray, internal)
+CREATE FUNCTION ginanyarray_extract(anyarray, internal)
 	RETURNS internal
 	AS 'MODULE_PATHNAME'
 	LANGUAGE C IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION ginanyarray_queryextract(anyarray, internal, internal)
+CREATE FUNCTION ginanyarray_queryextract(anyarray, internal, internal)
 	RETURNS internal
 	AS 'MODULE_PATHNAME'
 	LANGUAGE C IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION ginanyarray_consistent(internal, internal, anyarray)
+CREATE FUNCTION ginanyarray_consistent(internal, internal, anyarray)
 	RETURNS internal
 	AS 'MODULE_PATHNAME'
 	LANGUAGE C IMMUTABLE;

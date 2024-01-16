@@ -20,7 +20,7 @@
 
 #include <utils/guc.h>
 
-SimilarityType	SmlType = AA_Cosine;
+SimilarityKind	SmlType = AA_Cosine;
 double			SmlLimit = 0.6;
 
 static bool AnyArrayInited = false;

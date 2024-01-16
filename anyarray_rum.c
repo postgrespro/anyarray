@@ -1,7 +1,14 @@
 /*-------------------------------------------------------------------------
  *
  * anyarray_rum.c
- *    RUM support functions for anyarray
+ *    GIN support functions for anyarray
+ *
+ * Portions Copyright (c) 1996-2023, PostgreSQL Global Development Group
+ *
+ * Copyright (c) 2023, Postgres Professional
+ *
+ * Author: Teodor Sigaev <teodor@sigaev.ru>,
+ *         Oleg Bartunov <o.bartunov@postgrespro.ru>
  *
  * IDENTIFICATION
  *    contrib/anyarray/anyarray_rum.c
@@ -44,47 +51,7 @@ get_float8_infinity(void)
 
 /*
 
-RUM support functions
 
-        FUNCTION        1       rum_compare(STORAGETYPE, STORAGETYPE),
-        FUNCTION        2       rum_extract_value(VALUETYPE,internal,internal,internal,internal),
-        FUNCTION        3       rum_extract_query(QUERYTYPE,internal,smallint,internal,internal,internal,internal),
-        FUNCTION        4       rum_consistent(internal,smallint,VALUETYPE,int,internal,internal,internal,internal),
-        FUNCTION        5       rum_compare_prefix(VALUETYPE,VALUETYPE,smallint,internal),
-        FUNCTION        6       rum_config(internal),
-        FUNCTION        7       rum_pre_consistent(internal,smallint,VALUETYPE,int,internal,internal,internal,internal),
-        FUNCTION        8       rum_ordering_distance(internal,smallint,VALUETYPE,int,internal,internal,internal,internal,internal),
-        FUNCTION        9       rum_outer_distance(VALUETYPE, VALUETYPE, smallint),
-        FUNCTION        10      rum_join_pos(internal, internal),
-
-        int rum_compare(Datum a, Datum b)
-        Datum *rum_extract_value(Datum itemValue, int32 *nkeys, bool **nullFlags, Datum **addInfo, bool **nullFlagsAddInfo)
-        Datum *rum_extract_query(Datum query, int32 *nkeys, StrategyNumber n, bool **pmatch, Pointer **extra_data, 
-         bool **nullFlags, int32 *searchMode)
-        bool rum_consistent(bool check[], StrategyNumber n, Datum query, int32 nkeys, Pointer extra_data[], 
-         bool *recheck, Datum queryKeys[], bool nullFlags[], Datum **addInfo, bool **nullFlagsAddInfo)
-        int32 rum_compare_prefix(Datum a, Datum b,StrategyNumber n,void *addInfo) 
-        void rum_config(RumConfig *config)
-
-        bool rum_pre_consistent(bool check[], StrategyNumber n, Datum query, int32 nkeys, Pointer extra_data[], 
-         bool *recheck, Datum queryKeys[], bool nullFlags[])
-        Return value:
-         false if index key value is not consistent with query
-         true if key value MAYBE consistent and will be rechecked in rum_consistent function
-        Parameters:
-         check[] contains false, if element is not match any query element. 
-                 if all elements in check[] equal to true, this function is not called
-                 if all elements in check[] equal to false, this function is not called 
-         StrategyNumber - the number of the strategy from the class operator        
-         query
-         nkeys quantity of elements in check[]. If nkeys==0, this function is not called
-         recheck - parameter is not used
-         queryKeys[] - returned by rum_extract_query
-         nullFlags[] - returned by rum_extract_query (or all false, if rum_extract_query did not return nullFlags)  
-
-        double rum_ordering_distance(bool check[], ?StrategyNumber n, ?Datum query, int32 nkeys, ?Pointer extra_data[], 
-         ?bool *recheck, ?Datum queryKeys[], ?bool nullFlags[], Datum **addInfo, bool **nullFlagsAddInfo)
-        Datum rum_join_pos(Datum, Datum)
 */
 
 
@@ -117,11 +84,6 @@ RUM support functions
 #define HASHSTANDARD_PROC HASHPROC
 #endif
 
-#ifdef _DELETEIT_
-static float8 getSimilarityValue(SimpleArray *sa, SimpleArray *sb, int32 intersection);
-static int32 getNumOfIntersect(SimpleArray *sa, SimpleArray *sb);
-static int cmpAscArrayElem(const void *a, const void *b, void *arg);
-#endif
 /*
  * Specifies additional information type for operator class.
  */
@@ -268,7 +230,7 @@ rumanyarray_consistent(PG_FUNCTION_ARGS)
 
 	/* Datum	   *queryKeys = (Datum *) PG_GETARG_POINTER(6); */
 
-/* rumextract_anyarray_query does not return nullFlags, so RUM initializes all them by false */
+    /* rumextract_anyarray_query does not return nullFlags, so RUM initializes all them by false */
 	/* bool	   *nullFlags = (bool *) PG_GETARG_POINTER(7); */
 
 /* 
@@ -288,18 +250,6 @@ rumanyarray_consistent(PG_FUNCTION_ARGS)
             /* at least one element in check[] is true, so result = true */
             *recheck = false;
             res = true;
-			/* result is not lossy */
-			/* *recheck = false; */
-			/* must have a match for at least one non-null element */
-			/* res = false;
-			for (i = 0; i < nkeys; i++)
-			{
-				if (check[i] && !nullFlags[i])
-				{
-					res = true;
-					break;
-				}
-			}*/
 			break;
 		case RUM_CONTAINS_STRATEGY:
             /* result is not lossy */
@@ -317,21 +267,7 @@ rumanyarray_consistent(PG_FUNCTION_ARGS)
 			}
 			break;
 		case RUM_CONTAINED_STRATEGY:
-			/* we will need recheck */
-			/* *recheck = true; */
-
-			/* query must have <= amount of elements than array */
-            /* res = true;
-            for (i = 0; i < nkeys; i++)
-			{
-				if ( !addInfoIsNull[i] && DatumGetInt32(addInfo[i]) > nkeys)
-				{
-					res = false;
-					break;
-				}
-			} */
-
-            /* we will not need recheck, use addInfo to decide if tuple contains all elements from query */
+			/* we will not need recheck, use addInfo to decide if tuple contains all elements from query */
             {
                 *recheck = false;
                 res = true;
@@ -422,12 +358,6 @@ rumanyarray_consistent(PG_FUNCTION_ARGS)
                         sml = 0.0; /* empty key */
                     }
                     else {
-                        /* 
-                        SimpleArray	sa, sb;
-                        INIT_DUMMY_SIMPLE_ARRAY(&sa, nentries);
-                        INIT_DUMMY_SIMPLE_ARRAY(&sb, nkeys);
-                        sml = getSimilarityValue(&sa, &sb, intersection);
-                        */
                         sml = getSimilarityValue(nentries, nkeys, intersection);
                     }
                 } 
@@ -565,14 +495,6 @@ rumanyarray_ordering(PG_FUNCTION_ARGS)
 
 		/* there must be addInfo */
 		Assert(nentries >= 0);
-        /* 
-        SimpleArray	sa, sb;
-
-	
-		INIT_DUMMY_SIMPLE_ARRAY(&sa, nentries);
-		INIT_DUMMY_SIMPLE_ARRAY(&sb, nkeys);
-		sml = getSimilarityValue(&sa, &sb, intersection);
-        */
         sml = getSimilarityValue(nkeys, nentries, intersection);
         PG_RETURN_FLOAT8(DIST_FROM_SML(sml));
 	}
@@ -580,48 +502,6 @@ rumanyarray_ordering(PG_FUNCTION_ARGS)
 	PG_RETURN_FLOAT8(DIST_FROM_SML(0.0));
 }
 
-#ifdef _DELETEIT_
-PG_FUNCTION_INFO_V1(rumanyarray_similar);
-Datum
-rumanyarray_similar(PG_FUNCTION_ARGS)
-{
-	ArrayType		   *a = PG_GETARG_ARRAYTYPE_P(0);
-	ArrayType		   *b = PG_GETARG_ARRAYTYPE_P(1);
-	AnyArrayTypeInfo   *info;
-	SimpleArray		   *sa,
-					   *sb;
-	float8				result = 0.0;
-
-	CHECKARRVALID(a);
-	CHECKARRVALID(b);
-
-	if (ARR_ELEMTYPE(a) != ARR_ELEMTYPE(b))
-		ereport(ERROR,
-				(errcode(ERRCODE_INVALID_PARAMETER_VALUE),
-				 errmsg("array types do not match")));
-
-	if (ARR_ISVOID(a) || ARR_ISVOID(b))
-		PG_RETURN_BOOL(false);
-
-	if (fcinfo->flinfo->fn_extra == NULL)
-		fcinfo->flinfo->fn_extra = getAnyArrayTypeInfo(fcinfo->flinfo->fn_mcxt,
-													   ARR_ELEMTYPE(a));
-	info = (AnyArrayTypeInfo *) fcinfo->flinfo->fn_extra;
-
-	sa = Array2SimpleArray(info, a);
-	sb = Array2SimpleArray(info, b);
-
-	result = getSimilarityValue(sa, sb, getNumOfIntersect(sa, sb));
-
-	freeSimpleArray(sb);
-	freeSimpleArray(sa);
-
-	PG_FREE_IF_COPY(b, 1);
-	PG_FREE_IF_COPY(a, 0);
-
-	PG_RETURN_BOOL(result >= SmlLimit);
-}
-#endif
 
 PG_FUNCTION_INFO_V1(rumanyarray_distance);
 Datum
@@ -663,82 +543,3 @@ rumanyarray_distance(PG_FUNCTION_ARGS)
 
 	PG_RETURN_FLOAT8(DIST_FROM_SML(sml));
 }
-#ifdef _DELETEIT_
-
-
-static int
-cmpAscArrayElem(const void *a, const void *b, void *arg)
-{
-	FmgrInfo	*cmpFunc = (FmgrInfo*)arg;
-
-	Assert(a && b);
-	return DatumGetInt32(FunctionCall2Coll(cmpFunc, DEFAULT_COLLATION_OID, *(Datum*)a, *(Datum*)b));
-}
-
-/*
- * Similarity calculation
- */
-
-static int32
-getNumOfIntersect(SimpleArray *sa, SimpleArray *sb)
-{
-	int32				cnt = 0;
-	int					cmp;
-	Datum				*aptr = sa->elems,
-						*bptr = sb->elems;
-	AnyArrayTypeInfo	*info = sa->info;
-
-	cmpFuncInit(info);
-
-	sortSimpleArray(sa, 1);
-	uniqSimpleArray(sa, false);
-	sortSimpleArray(sb, 1);
-	uniqSimpleArray(sb, false);
-
-	while(aptr - sa->elems < sa->nelems && bptr - sb->elems < sb->nelems)
-	{
-		cmp = cmpAscArrayElem(aptr, bptr, &info->cmpFunc);
-
-		if (cmp < 0)
-			aptr++;
-		else if (cmp > 0)
-			bptr++;
-		else
-		{
-			cnt++;
-			aptr++;
-			bptr++;
-		}
-	}
-
-	return cnt;
-}
-
-static float8
-getSimilarityValue(SimpleArray *sa, SimpleArray *sb, int32 intersection)
-{
-	float8 result = 0.0;
-
-	switch (SmlType)
-	{
-		case AA_Cosine:
-			result = ((float8) intersection) /
-						sqrt(((float8) sa->nelems) * ((float8) sb->nelems));
-			break;
-		case AA_Jaccard:
-			result = ((float8) intersection) /
-						(((float8) sa->nelems) +
-						 ((float8) sb->nelems) -
-						 ((float8) intersection));
-			break;
-		case AA_Overlap:
-			result = intersection;
-			break;
-		default:
-			elog(ERROR, "unknown similarity type");
-	}
-
-	return result;
-}
-
-#endif
