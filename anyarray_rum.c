@@ -269,10 +269,10 @@ rumanyarray_consistent(PG_FUNCTION_ARGS)
 		case RUM_CONTAINED_STRATEGY:
 			/* we will not need recheck, use addInfo to decide if tuple contains all elements from query */
             {
-                *recheck = false;
-                res = true;
                 int32		intersection = 0,
                                 nentries = 0;
+                *recheck = false;
+                res = true;
                 
                 for (i = 0; i < nkeys; i++)
                 {
